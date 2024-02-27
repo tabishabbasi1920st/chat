@@ -6,7 +6,6 @@ const Chat = ({ username }) => {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
   const [socket, setSocket] = useState(null);
-  const [sendTo, setSendTo] = useState("Tabish");
 
   useEffect(() => {
     const newSocket = io("http://localhost:5000");

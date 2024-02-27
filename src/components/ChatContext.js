@@ -3,12 +3,14 @@ import React, { createContext, useState } from "react";
 export const ChatContext = React.createContext();
 
 const ChatContextProvider = ({ children }) => {
-  const [profile, setProfile] = useState({
-    id: 3,
-    name: "Mathias Devos",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/3.jpg",
-    email: "mathiasdevos@gmail.com",
-  });
+  const [profile, setProfile] = useState(null);
+  //   {
+  //   id: 3,
+  //   name: "Mathias Devos",
+  //   imageUrl: "https://connectme-html.themeyn.com/images/avatar/3.jpg",
+  //   email: "mathiasdevos@gmail.com",
+  // }
+
 
   const [selectedChat, setSelectedChat] = useState(null);
   const [socket, setSocket] = useState(null);

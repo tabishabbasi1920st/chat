@@ -1,79 +1,59 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { ChatContext } from "./ChatContext";
+import { Oval } from "react-loader-spinner";
 
-const chatList = [
-  {
-    id: 1,
-    name: "Jasmine Thompson",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/1.jpg",
-    email: "jasmineThompson@gmail.com",
-  },
-  {
-    id: 2,
-    name: "Konstantin Frank",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/2.jpg",
-    email: "konstantinfrank@gmail.com",
-  },
-  {
-    id: 4,
-    name: "Marie George",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/4.jpg",
-    email: "mariegeorge@gmail.com",
-  },
-  {
-    id: 5,
-    name: "Phillip Burke",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/5.jpg",
-    email: "phillipburke@gmail.com",
-  },
-  {
-    id: 6,
-    name: "Romy Schulte",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/6.jpg",
-    email: "romyschulte@gmail.com",
-  },
-  {
-    id: 7,
-    name: "Frances Arnold",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/7.jpg",
-    email: "francesarnold@gmail.com",
-  },
-  {
-    id: 8,
-    name: "Nina Dubois",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/8.jpg",
-    email: "ninadubois@gmail.com",
-  },
-  {
-    id: 9,
-    name: "Albert Henderson",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/9.jpg",
-    email: "alberthenderson@gmail.com",
-  },
-  {
-    id: 10,
-    name: "Maxim Werner",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/10.jpg",
-    email: "maximwerner@gmail.com",
-  },
-  {
-    id: 11,
-    name: "Nolan Etienne",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/11.jpg",
-    email: "nolanetienne@gmail.com",
-  },
-];
+const apiConstants = {
+  initial: "INITIAL",
+  inProgress: "IN_PROGRESS",
+  success: "SUCCESS",
+  failure: "FAILURE",
+};
 
 export default function AllChat() {
   const { setSelectedChat, profile } = useContext(ChatContext);
+  const [chatList, setChatList] = useState([]);
+  const [apiStatus, setApiStatus] = useState(apiConstants.initial);
 
-  return (
-    <MainContainer>
-      <div className="top-container">
-        <p className="chats-para">Chats</p>
-        <h1>{profile.name}</h1>
-      </div>
+  useEffect(() => {
+    const getAllChats = async () => {
+      try {
+        setApiStatus(apiConstants.inProgress);
+        const apiUrl = "http://localhost:5000/all-chats";
+        const response = await fetch(apiUrl);
+        const fetchedData = await response.json();
+        if (response.ok) {
+          const chatList = fetchedData.allChats;
+          setChatList(chatList);
+          setApiStatus(apiConstants.success);
+        } else {
+          setApiStatus(apiConstants.failure);
+        }
+      } catch (err) {
+        console.log("Error while fetching chatlist:", err);
+        setApiStatus(apiConstants.failure);
+      }
+    };
+
+    getAllChats();
+  }, []);
+
+  const renderLoader = () => {
+    return (
+      <Oval
+        visible={true}
+        height="100%"
+        width="25"
+        color="#fff"
+        ariaLabel="oval-loading"
+        wrapperStyle={{}}
+        wrapperClass=""
+      />
+    );
+  };
+
+  const renderSuccessView = () => {
+    return (
       <ul>
         {chatList.map((eachChat) => {
           const { id, name, imageUrl } = eachChat;
@@ -89,6 +69,30 @@ export default function AllChat() {
           );
         })}
       </ul>
+    );
+  };
+
+  const renderFailureView = () => {
+    return <div>Failure view</div>;
+  };
+
+  const renderAppropriateView = () => {
+    switch (apiStatus) {
+      case apiConstants.success:
+        return renderSuccessView();
+      case apiConstants.inProgress:
+        return renderLoader();
+      default:
+        return renderFailureView();
+    }
+  };
+
+  return (
+    <MainContainer>
+      <div className="top-container">
+        <p className="chats-para">Chats</p>
+      </div>
+      {renderAppropriateView()}
     </MainContainer>
   );
 }

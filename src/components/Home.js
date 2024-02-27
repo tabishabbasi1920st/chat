@@ -6,6 +6,7 @@ import io from "socket.io-client";
 import { ChatContext } from "./ChatContext.js";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import Header from "./Header.js";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -18,8 +19,6 @@ export default function Home() {
       return navigate("/login", { replace: true });
     }
 
-    console.log("hello");
-
     const newSocket = io("http://localhost:5000");
     setSocket(newSocket);
 
@@ -28,12 +27,14 @@ export default function Home() {
       setConversationList((prevList) => [...prevList, newMessage]);
     });
 
-    newSocket.emit("setEmail", profile.email);
+    {
+      profile !== null && newSocket.emit("setEmail", profile.email);
+    }
 
     return () => {
       newSocket.disconnect();
     };
-  }, []);
+  }, [profile]);
 
   const renderEmptyChatContainer = () => {
     return (
@@ -50,6 +51,7 @@ export default function Home() {
 
   return (
     <MainContainer>
+      <Header />
       <FirstContainer ischatselected={selectedChat}>
         <AllChat />
       </FirstContainer>

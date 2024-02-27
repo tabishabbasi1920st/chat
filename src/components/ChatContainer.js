@@ -96,7 +96,11 @@ export default function ChatContainer() {
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
         />
-        <SendButton type="button" onClick={handleMessageSent}>
+        <SendButton
+          disabled={messageInput === ""}
+          type="button"
+          onClick={handleMessageSent}
+        >
           <MdSend />
         </SendButton>
       </UserFooterContainer>
