@@ -4,16 +4,16 @@ import { ChatContext } from "./ChatContext";
 
 const chatList = [
   {
+    id: 1,
+    name: "Jasmine Thompson",
+    imageUrl: "https://connectme-html.themeyn.com/images/avatar/1.jpg",
+    email: "jasmineThompson@gmail.com",
+  },
+  {
     id: 2,
     name: "Konstantin Frank",
     imageUrl: "https://connectme-html.themeyn.com/images/avatar/2.jpg",
     email: "konstantinfrank@gmail.com",
-  },
-  {
-    id: 3,
-    name: "Mathias Devos",
-    imageUrl: "https://connectme-html.themeyn.com/images/avatar/3.jpg",
-    email: "mathiasdevos@gmail.com",
   },
   {
     id: 4,

@@ -1,52 +1,69 @@
 import styled from "styled-components";
 import { IoArrowBackSharp } from "react-icons/io5";
 import { MdSend } from "react-icons/md";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ChatContext } from "./ChatContext";
+import { v4 as uuidv4 } from "uuid";
 
 export default function ChatContainer() {
-  const [messageInput, setMessageInput] = useState("");
   const {
     selectedChat,
     setSelectedChat,
     socket,
     conversationList,
     setConversationList,
+    profile,
+    getChats,
   } = useContext(ChatContext);
 
-  const { imageUrl, email } = selectedChat;
+  useEffect(() => {
+    const data = getChats(profile.email, selectedChat.email);
+    setChatData(data);
+    console.log(data);
+  }, [conversationList, selectedChat]);
+
+  const [messageInput, setMessageInput] = useState("");
+  const [chatData, setChatData] = useState([]);
+
+  const { imageUrl } = selectedChat;
 
   const handleMessageSent = () => {
     const dateAndTime = new Date();
-    socket.emit("privateMessage", { messageInput, email });
+    const message = {
+      id: uuidv4(),
+      newMessage: messageInput,
+      dateTime: dateAndTime,
+      sentBy: profile.email,
+      sentTo: selectedChat.email,
+    };
+
+    socket.emit("privateMessage", message);
     setMessageInput("");
-    setConversationList((prevList) => [
-      ...prevList,
-      { sent: { newMessage: messageInput, dateTime: dateAndTime } },
-    ]);
+    setConversationList((prevList) => [...prevList, message]);
   };
 
   const buildMessagesUi = (eachConversation) => {
-    const { sent, received } = eachConversation;
-    const { newMessage, dateTime } = sent;
+    const { id, newMessage, dateTime, sentBy, sentTo } = eachConversation;
+
     const dt = new Date(dateTime);
     const hour = dt.getHours();
     const formattedHours = hour % 12 || 12; // convert to 12-hour format.
     const amOrPm = hour < 12 ? "AM" : "PM";
     const minutes = dt.getMinutes().toLocaleString();
-    if (sent) {
+
+    if (sentBy === profile.email) {
       return (
-        <SentMessage>
-          <p>{newMessage}</p>
-          <p>{`${formattedHours}:${minutes}${amOrPm}`}</p>
+        <SentMessage key={id}>
+          <p className="text-message">{newMessage}</p>
+          <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
         </SentMessage>
       );
     }
-    if (received) {
+    if (sentBy === selectedChat.email) {
       return (
-        <ReceivedMessage>
-          <p>{newMessage}</p>
-          <p>{`${formattedHours}:${minutes}${amOrPm}`}</p>
+        <ReceivedMessage key={id}>
+          <p className="text-message">{newMessage}</p>
+          <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
         </ReceivedMessage>
       );
     }
@@ -68,9 +85,7 @@ export default function ChatContainer() {
 
       {/* Main */}
       <MainChatContainer>
-        {conversationList.map((eachConversation) =>
-          buildMessagesUi(eachConversation)
-        )}
+        {chatData.map((eachConversation) => buildMessagesUi(eachConversation))}
       </MainChatContainer>
 
       {/* Footer */}
@@ -212,16 +227,43 @@ const DpContainer = styled.div`
 
 const SentMessage = styled.div`
   padding: 10px;
-  border: 2px solid red;
   color: #fff;
-  max-width: 80%;
+  max-width: 85%;
   margin-left: auto;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  background-color: #2563eb;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  .text-message {
+    font-size: 14px;
+  }
+
+  .text-message-time {
+    font-size: 11px;
+    color: #94a3b8;
+  }
 `;
 
 const ReceivedMessage = styled.div`
   padding: 10px;
-  border: 2px solid green;
   color: #fff;
-  max-width: 80%;
+  max-width: 85%;
   margin-right: auto;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  background-color: #132036;
+
+  .text-message {
+    font-size: 14px;
+  }
+
+  .text-message-time {
+    font-size: 11px;
+    color: #94a3b8;
+  }
 `;

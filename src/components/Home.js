@@ -2,28 +2,30 @@ import styled from "styled-components";
 import { useContext, useEffect, useState } from "react";
 import AllChat from "./AllChat.js";
 import ChatContainer from "./ChatContainer.js";
-import io, { Socket } from "socket.io-client";
+import io from "socket.io-client";
 import { ChatContext } from "./ChatContext.js";
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
-  const {
-    profile,
-    selectedChat,
-    setSocket,
-    conversationList,
-    setConversationList,
-  } = useContext(ChatContext);
+  const navigate = useNavigate();
+
+  const { profile, selectedChat, setSocket, setConversationList } =
+    useContext(ChatContext);
 
   useEffect(() => {
+    if (Cookies.get("chatToken") === undefined) {
+      return navigate("/login", { replace: true });
+    }
+
+    console.log("hello");
+
     const newSocket = io("http://localhost:5000");
     setSocket(newSocket);
 
     newSocket.on("privateMessage", (newMessage) => {
-      const dateAndTime = new Date();
-      setConversationList((prevList) => [
-        ...prevList,
-        { received: { newMessage: newMessage, dateTime: dateAndTime } },
-      ]);
+      console.log(newMessage);
+      setConversationList((prevList) => [...prevList, newMessage]);
     });
 
     newSocket.emit("setEmail", profile.email);
@@ -48,10 +50,10 @@ export default function Home() {
 
   return (
     <MainContainer>
-      <FirstContainer isChatSelected={selectedChat}>
+      <FirstContainer ischatselected={selectedChat}>
         <AllChat />
       </FirstContainer>
-      <SecondContainer isChatSelected={selectedChat}>
+      <SecondContainer ischatselected={selectedChat}>
         {!selectedChat && renderEmptyChatContainer()}
         {selectedChat && <ChatContainer />}
       </SecondContainer>
@@ -70,7 +72,7 @@ const MainContainer = styled.div`
 `;
 
 const FirstContainer = styled.div`
-  display: ${(props) => (props.isChatSelected ? "none" : "block")};
+  display: ${(props) => (props.ischatselected ? "none" : "block")};
   @media screen and (min-width: 768px) {
     width: 320px;
     display: block;
@@ -78,7 +80,7 @@ const FirstContainer = styled.div`
 `;
 
 const SecondContainer = styled.div`
-  display: ${(props) => (props.isChatSelected ? "block" : "none")};
+  display: ${(props) => (props.ischatselected ? "block" : "none")};
   @media screen and (min-width: 768px) {
     width: calc(100% - 320px);
     display: block;

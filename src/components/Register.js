@@ -2,9 +2,19 @@ import { useState } from "react";
 import styled from "styled-components";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Oval } from "react-loader-spinner";
+
+const apiConstants = {
+  initial: "INITIAL",
+  inProgress: "IN_PROGRESS",
+  success: "SUCCESS",
+  failure: "FAILURE",
+};
 
 export default function Register() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -12,6 +22,8 @@ export default function Register() {
     passwordRepeat: "",
     privacyChecked: false,
   });
+
+  const [apiStatus, setApiStatus] = useState(apiConstants.initial);
 
   const toastOptions = {
     autoClose: 2000,
@@ -88,10 +100,58 @@ export default function Register() {
     return true;
   };
 
-  const handleFormSubmit = (e) => {
+  const renderLoader = () => {
+    return (
+      <Oval
+        visible={true}
+        height="100%"
+        width="25"
+        color="#fff"
+        ariaLabel="oval-loading"
+        wrapperStyle={{}}
+        wrapperClass=""
+      />
+    );
+  };
+
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (formValidation()) {
-      toast.success("Registration Successfull !", { ...toastOptions });
+      try {
+        setApiStatus(apiConstants.inProgress);
+        const apiUrl = "http://localhost:5000/register";
+        const options = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        };
+
+        const response = await fetch(apiUrl, options);
+        const fetchedData = await response.json();
+        if (response.ok) {
+          setApiStatus(apiConstants.success);
+          toast.success("Registration Successful! Please Login.", {
+            ...toastOptions,
+          });
+          setTimeout(() => {
+            navigate("/login");
+          }, 3000);
+        } else {
+          const message = fetchedData.message;
+          toast.error(message, {
+            ...toastOptions,
+          });
+          setApiStatus(apiConstants.failure);
+        }
+      } catch (error) {
+        toast.error("Something went wrong while registering user.", {
+          ...toastOptions,
+        });
+        setApiStatus(apiConstants.failure);
+        console.log("Error while register user.", error);
+      }
     }
   };
 
@@ -166,7 +226,11 @@ export default function Register() {
               I agree with <span>privacy policy & terms</span>
             </p>
           </div>
-          <button type="submit">Account Register</button>
+          <button type="submit">
+            {apiStatus === apiConstants.inProgress
+              ? renderLoader()
+              : "Account Register"}
+          </button>
         </form>
         <p className="already-have-account-login">
           Already have an account ?{" "}
@@ -298,6 +362,9 @@ const MainContainer = styled.div`
     color: #fff;
     margin-top: 15px;
     cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   form button:hover {

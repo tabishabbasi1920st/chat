@@ -2,13 +2,26 @@ import { useState } from "react";
 import styled from "styled-components";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
+import { Oval } from "react-loader-spinner";
+
+const apiConstants = {
+  initial: "INITIAL",
+  inProgress: "IN_PROGRESS",
+  success: "SUCCESS",
+  failure: "FAILURE",
+};
 
 export default function Register() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
+  const [apiStatus, setApiStatus] = useState(apiConstants.initial);
 
   const toastOptions = {
     autoClose: 2000,
@@ -16,6 +29,20 @@ export default function Register() {
       background: "#0f172a",
       color: "#fff",
     },
+  };
+
+  const renderLoader = () => {
+    return (
+      <Oval
+        visible={true}
+        height="100%"
+        width="25"
+        color="#fff"
+        ariaLabel="oval-loading"
+        wrapperStyle={{}}
+        wrapperClass=""
+      />
+    );
   };
 
   const handleFormChange = (e) => {
@@ -46,10 +73,40 @@ export default function Register() {
     return true;
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (formValidation()) {
-      toast.success("Login Successfull !", { ...toastOptions });
+      setApiStatus(apiConstants.inProgress);
+      try {
+        const apiUrl = "http://localhost:5000/login";
+        const options = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        };
+
+        const response = await fetch(apiUrl, options);
+        const fetchedData = await response.json();
+        if (response.ok) {
+          const token = fetchedData.jwtToken;
+          Cookies.set("chatToken", token, { expires: 7 });
+          setApiStatus(apiConstants.success);
+          toast.success("Login Successfull !", { ...toastOptions });
+          setTimeout(() => {
+            navigate("/");
+          }, 3000);
+        } else {
+          const message = fetchedData.message;
+          toast.error(message, { ...toastOptions });
+          setApiStatus(apiConstants.failure);
+        }
+      } catch (error) {
+        toast.error("Error while login", { ...toastOptions });
+        console.log("Error while login", error);
+        setApiStatus(apiConstants.failure);
+      }
     }
   };
 
@@ -83,11 +140,15 @@ export default function Register() {
               placeholder="password"
             />
           </div>
-          <button type="submit">Account Login</button>
+          <button type="submit">
+            {apiStatus === apiConstants.inProgress
+              ? renderLoader()
+              : "Account Login"}
+          </button>
         </form>
         <p className="already-have-account-login">
           Don't have an account ?{" "}
-          <Link to="/register" style={{textDecoration:"none"}}>
+          <Link to="/register" style={{ textDecoration: "none" }}>
             <span style={{ color: "#7ca1f3", fontWeight: 600 }}>Register</span>
           </Link>
         </p>
@@ -215,6 +276,9 @@ const MainContainer = styled.div`
     color: #fff;
     margin-top: 15px;
     cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   form button:hover {
