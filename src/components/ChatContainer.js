@@ -146,8 +146,11 @@ export default function ChatContainer() {
     if (sentBy === selectedChat.email) {
       return (
         <ReceivedMessage key={id}>
-          <p className="text-message">{newMessage}</p>
-          <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
+          <SenderDp backgroundImage={selectedChat.imageUrl}></SenderDp>
+          <div className="sender-msg-container">
+            <p className="text-message">{newMessage}</p>
+            <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
+          </div>
         </ReceivedMessage>
       );
     }
@@ -274,6 +277,8 @@ const MainChatContainer = styled.div`
   overflow-y: scroll;
   background-color: #0f172a;
   padding: 0px 10px 0px 10px;
+  display: flex;
+  flex-direction: column;
   &::-webkit-scrollbar {
     width: 6px;
   }
@@ -374,10 +379,11 @@ const ReceivedMessage = styled.div`
   color: #fff;
   max-width: 85%;
   margin-right: auto;
-  border-radius: 10px;
   margin-top: 10px;
   margin-bottom: 10px;
-  background-color: #132036;
+  background-color: #0f172a;
+  display: flex;
+  gap: 10px;
 
   .text-message {
     font-size: 14px;
@@ -387,6 +393,24 @@ const ReceivedMessage = styled.div`
     font-size: 11px;
     color: #94a3b8;
   }
+
+  .sender-msg-container {
+    background-color: #132036;
+    border-radius: 10px;
+    padding: 10px;
+    /* border: 2px solid red; */
+  }
+`;
+
+const SenderDp = styled.div`
+  height: 45px;
+  width: 45px;
+  background-image: url(${(props) => props.backgroundImage});
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  align-self: end;
 `;
 
 const LoaderContainer = styled.div`
