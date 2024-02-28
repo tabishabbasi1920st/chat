@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { ChatContext } from "./ChatContext";
 import { Oval } from "react-loader-spinner";
+import { FaSearch } from "react-icons/fa";
 
 const apiConstants = {
   initial: "INITIAL",
@@ -14,6 +15,8 @@ export default function AllChat() {
   const { setSelectedChat } = useContext(ChatContext);
   const [chatList, setChatList] = useState([]);
   const [apiStatus, setApiStatus] = useState(apiConstants.initial);
+  const [isSearchFocus, setIsSearchFocus] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
     const getAllChats = async () => {
@@ -54,10 +57,36 @@ export default function AllChat() {
     );
   };
 
+  const getFilteredListBySearch = () => {
+    const filteredList = chatList.filter((eachChat) => {
+      return eachChat.name.toLowerCase().includes(searchInput.toLowerCase());
+    });
+
+    return filteredList;
+  };
+
+  const renderSearch = () => {
+    return (
+      <SearchContainer isSearchFocus={isSearchFocus}>
+        <SearchLensBtn>
+          <FaSearch />
+        </SearchLensBtn>
+        <input
+          type="search"
+          value={searchInput}
+          placeholder="Search contact / chat"
+          onFocus={() => setIsSearchFocus(true)}
+          onBlur={() => setIsSearchFocus(false)}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
+      </SearchContainer>
+    );
+  };
+
   const renderSuccessView = () => {
     return (
       <ul>
-        {chatList.map((eachChat) => {
+        {getFilteredListBySearch().map((eachChat) => {
           const { id, name, imageUrl, email } = eachChat;
           return (
             <li key={id} onClick={() => setSelectedChat(eachChat)}>
@@ -90,7 +119,15 @@ export default function AllChat() {
     }
   };
 
-  return <MainContainer>{renderAppropriateView()}</MainContainer>;
+  return (
+    <MainContainer>
+      <TopContainer>
+        <p>Chats</p>
+        {renderSearch()}
+      </TopContainer>
+      {renderAppropriateView()}
+    </MainContainer>
+  );
 }
 
 const MainContainer = styled.div`
@@ -113,7 +150,7 @@ const MainContainer = styled.div`
   }
 
   ul {
-    height: calc(100vh - 50px);
+    height: calc(100vh - 170px);
     overflow: auto;
     padding-bottom: 10px;
     &::-webkit-scrollbar {
@@ -149,7 +186,6 @@ const BackgroundImageContainer = styled.div`
   background-size: cover;
   background-position: center;
   border-radius: 5px;
-  /* border: 1px solid red; */
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
@@ -178,4 +214,59 @@ const LoaderContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+const TopContainer = styled.div`
+  height: 115px;
+  width: 100%;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  p {
+    color: #fff;
+    font-weight: 600;
+    font-size: 23px;
+  }
+`;
+
+const SearchContainer = styled.div`
+  height: 40px;
+  width: 100%;
+  /* border: 1px solid #203047; */
+  border: ${({ isSearchFocus }) =>
+    isSearchFocus ? "none" : "1px solid #203047"};
+  display: flex;
+  border-radius: 15px;
+  overflow: hidden;
+  background-color: ${({ isSearchFocus }) => (isSearchFocus ? "#0f172a" : "")};
+  transition: border 0.2s ease-in-out 0s, background-color 0.2s ease-in-out 0.2s;
+  input {
+    flex-grow: 1;
+    background-color: transparent;
+    border: none;
+    font-size: 15px;
+    font-weight: 300;
+    outline: none;
+    color: #e2e8f0;
+    padding: 10px;
+    &::placeholder {
+      color: #e2e8f0;
+    }
+  }
+`;
+
+const SearchLensBtn = styled.button`
+  height: 100%;
+  min-width: 50px;
+  max-width: 50px;
+  flex-shrink: 0;
+  font-size: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  background-color: transparent;
+  color: #94a3b8;
 `;
