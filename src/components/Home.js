@@ -27,8 +27,10 @@ export default function Home() {
       setConversationList((prevList) => [...prevList, newMessage]);
     });
 
-    {
-      profile !== null && newSocket.emit("setEmail", profile.email);
+    if (profile !== null) {
+      newSocket.emit("setEmail", profile.email, (ack) => {
+        console.log(ack);
+      });
     }
 
     return () => {

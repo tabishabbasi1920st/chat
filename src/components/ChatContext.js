@@ -1,24 +1,12 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { useState } from "react";
 
 export const ChatContext = React.createContext();
 
 const ChatContextProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
-
   const [selectedChat, setSelectedChat] = useState(null);
   const [socket, setSocket] = useState(null);
-  const [conversationList, setConversationList] = useState([]);
-
-  const getChats = (profileEmail, selectedChatEmail) => {
-    const filteredList = conversationList.filter((item) => {
-      return (
-        (item.sentBy === profileEmail && item.sentTo === selectedChatEmail) ||
-        (item.sentBy === selectedChatEmail && item.sentTo === profileEmail)
-      );
-    });
-
-    return filteredList;
-  };
+  const [onlineUsersList, setOnlineUsersList] = useState([]);
 
   return (
     <ChatContext.Provider
@@ -29,9 +17,8 @@ const ChatContextProvider = ({ children }) => {
         setSelectedChat,
         socket,
         setSocket,
-        conversationList,
-        setConversationList,
-        getChats,
+        onlineUsersList,
+        setOnlineUsersList,
       }}
     >
       {children}

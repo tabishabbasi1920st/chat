@@ -4,28 +4,56 @@ import { MdSend } from "react-icons/md";
 import { useContext, useEffect, useState } from "react";
 import { ChatContext } from "./ChatContext";
 import { v4 as uuidv4 } from "uuid";
+import Cookies from "js-cookie";
+import { Oval } from "react-loader-spinner";
+
+const apiConstants = {
+  initial: "INITIAL",
+  inProgress: "IN_PROGRESS",
+  success: "SUCCESS",
+  failure: "FAILURE",
+};
 
 export default function ChatContainer() {
-  const {
-    selectedChat,
-    setSelectedChat,
-    socket,
-    conversationList,
-    setConversationList,
-    profile,
-    getChats,
-  } = useContext(ChatContext);
+  const { selectedChat, setSelectedChat, socket, profile } =
+    useContext(ChatContext);
+
+  const [apiStatus, setApiStatus] = useState(apiConstants.initial);
+  const [chatData, setChatData] = useState([]);
+  const [messageInput, setMessageInput] = useState("");
 
   useEffect(() => {
-    const data = getChats(profile.email, selectedChat.email);
-    setChatData(data);
-    console.log(data);
-  }, [conversationList, selectedChat]);
+    let gettingChats;
+    try {
+      setApiStatus(apiConstants.inProgress);
+      gettingChats = async () => {
+        const apiUrl = `http://localhost:5000/my-chats?me=${profile.email}&to=${selectedChat.email}`;
+        const options = {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${Cookies.get("chatToken")}`,
+          },
+        };
 
-  const [messageInput, setMessageInput] = useState("");
-  const [chatData, setChatData] = useState([]);
+        const response = await fetch(apiUrl, options);
+        if (response.ok) {
+          const chatData = await response.json();
+          setChatData(chatData);
+          setApiStatus(apiConstants.success);
+        } else {
+          setApiStatus(apiConstants.failure);
+        }
+      };
+    } catch (err) {
+      console.log("Error while fetching peer to peer chats: ", err);
+      setApiStatus(apiConstants.failure);
+    }
 
-  const { imageUrl } = selectedChat;
+    if (profile !== null && selectedChat !== null) {
+      gettingChats();
+    }
+  }, [selectedChat]);
 
   const handleMessageSent = () => {
     const dateAndTime = new Date();
@@ -45,7 +73,32 @@ export default function ChatContainer() {
       }
     });
     setMessageInput("");
-    setConversationList((prevList) => [...prevList, message]);
+    setChatData((prevList) => [...prevList, message]);
+  };
+
+  const renderLoader = () => {
+    return (
+      <LoaderContainer>
+        <Oval
+          visible={true}
+          height="100%"
+          width="25"
+          color="#fff"
+          ariaLabel="oval-loading"
+          wrapperStyle={{}}
+          wrapperClass=""
+        />
+        <p>Loading</p>
+      </LoaderContainer>
+    );
+  };
+
+  const renderFailureView = () => {
+    return (
+      <LoaderContainer>
+        <p>Something went wrong</p>
+      </LoaderContainer>
+    );
   };
 
   const buildMessagesUi = (eachConversation) => {
@@ -75,6 +128,27 @@ export default function ChatContainer() {
     }
   };
 
+  const renderSuccessView = () => {
+    return (
+      <>
+        {chatData.map((eachConversation) => buildMessagesUi(eachConversation))}
+      </>
+    );
+  };
+
+  const renderAppropriateView = () => {
+    switch (apiStatus) {
+      case apiConstants.inProgress:
+        return renderLoader();
+      case apiConstants.success:
+        return renderSuccessView();
+      case apiConstants.failure:
+        return renderFailureView();
+      default:
+        return null;
+    }
+  };
+
   return (
     <MainContainer>
       {/* Header */}
@@ -82,7 +156,7 @@ export default function ChatContainer() {
         <BackButton type="button" onClick={() => setSelectedChat(null)}>
           <IoArrowBackSharp />
         </BackButton>
-        <DpContainer backgroundImage={imageUrl}></DpContainer>
+        <DpContainer backgroundImage={selectedChat.imageUrl}></DpContainer>
         <InformationContainer>
           <Username>{selectedChat.name}</Username>
           <Status>Active</Status>
@@ -90,9 +164,7 @@ export default function ChatContainer() {
       </UserHeaderContainer>
 
       {/* Main */}
-      <MainChatContainer>
-        {chatData.map((eachConversation) => buildMessagesUi(eachConversation))}
-      </MainChatContainer>
+      <MainChatContainer>{renderAppropriateView()}</MainChatContainer>
 
       {/* Footer */}
       <UserFooterContainer>
@@ -278,5 +350,18 @@ const ReceivedMessage = styled.div`
   .text-message-time {
     font-size: 11px;
     color: #94a3b8;
+  }
+`;
+
+const LoaderContainer = styled.div`
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+
+  p {
+    color: #fff;
+    margin-left: 5px;
   }
 `;
