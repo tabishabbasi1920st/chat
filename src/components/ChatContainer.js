@@ -37,7 +37,13 @@ export default function ChatContainer() {
       sentTo: selectedChat.email,
     };
 
-    socket.emit("privateMessage", message);
+    socket.emit("privateMessage", message, (ack) => {
+      if (ack.success) {
+        console.log(ack.message, ack.success);
+      } else {
+        console.error(ack.message, ack.success);
+      }
+    });
     setMessageInput("");
     setConversationList((prevList) => [...prevList, message]);
   };
@@ -138,6 +144,9 @@ const BackButton = styled.button`
   align-items: center;
   @media screen and (min-width: 768px) {
     display: none;
+  }
+  &:hover {
+    background-color: white;
   }
 `;
 
