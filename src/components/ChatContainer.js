@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { IoArrowBackSharp } from "react-icons/io5";
 import { MdSend } from "react-icons/md";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { ChatContext } from "./ChatContext";
 import { v4 as uuidv4 } from "uuid";
 import Cookies from "js-cookie";
@@ -18,42 +18,47 @@ export default function ChatContainer() {
   const { selectedChat, setSelectedChat, socket, profile } =
     useContext(ChatContext);
 
+  const chatContainerRef = useRef();
+
   const [apiStatus, setApiStatus] = useState(apiConstants.initial);
   const [chatData, setChatData] = useState([]);
   const [messageInput, setMessageInput] = useState("");
 
   useEffect(() => {
-    let gettingChats;
-    try {
+    const gettingChats = async () => {
       setApiStatus(apiConstants.inProgress);
-      gettingChats = async () => {
-        const apiUrl = `http://localhost:5000/my-chats?me=${profile.email}&to=${selectedChat.email}`;
-        const options = {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${Cookies.get("chatToken")}`,
-          },
-        };
-
-        const response = await fetch(apiUrl, options);
-        if (response.ok) {
-          const chatData = await response.json();
-          setChatData(chatData);
-          setApiStatus(apiConstants.success);
-        } else {
-          setApiStatus(apiConstants.failure);
-        }
+      const apiUrl = `http://localhost:5000/my-chats?me=${profile.email}&to=${selectedChat.email}`;
+      const options = {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${Cookies.get("chatToken")}`,
+        },
       };
-    } catch (err) {
-      console.log("Error while fetching peer to peer chats: ", err);
-      setApiStatus(apiConstants.failure);
-    }
+
+      const response = await fetch(apiUrl, options);
+      if (response.ok) {
+        const chatData = await response.json();
+        setChatData(chatData);
+        setApiStatus(apiConstants.success);
+      } else {
+        setApiStatus(apiConstants.failure);
+      }
+    };
 
     if (profile !== null && selectedChat !== null) {
       gettingChats();
     }
+
+    socket.on("privateMessage", (newMessage) => {
+      console.log(newMessage);
+      setChatData((prevData) => [...prevData, newMessage]);
+    });
   }, [selectedChat]);
+
+  useEffect(() => {
+    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+  }, [chatData]);
 
   const handleMessageSent = () => {
     const dateAndTime = new Date();
@@ -164,7 +169,9 @@ export default function ChatContainer() {
       </UserHeaderContainer>
 
       {/* Main */}
-      <MainChatContainer>{renderAppropriateView()}</MainChatContainer>
+      <MainChatContainer ref={chatContainerRef}>
+        {renderAppropriateView()}
+      </MainChatContainer>
 
       {/* Footer */}
       <UserFooterContainer>

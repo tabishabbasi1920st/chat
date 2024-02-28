@@ -11,7 +11,7 @@ const apiConstants = {
 };
 
 export default function AllChat() {
-  const { setSelectedChat, profile } = useContext(ChatContext);
+  const { setSelectedChat, onlineUsersList } = useContext(ChatContext);
   const [chatList, setChatList] = useState([]);
   const [apiStatus, setApiStatus] = useState(apiConstants.initial);
 
@@ -58,12 +58,15 @@ export default function AllChat() {
     return (
       <ul>
         {chatList.map((eachChat) => {
-          const { id, name, imageUrl } = eachChat;
+          const { id, name, imageUrl, email } = eachChat;
           return (
             <li key={id} onClick={() => setSelectedChat(eachChat)}>
               <BackgroundImageContainer
                 style={{ backgroundImage: `url(${imageUrl})` }}
-              />
+              >
+                {onlineUsersList.includes(email) && <h1>.</h1>}
+              </BackgroundImageContainer>
+
               <DescriptionContainer>
                 <p>{name}</p>
               </DescriptionContainer>
@@ -148,6 +151,19 @@ const BackgroundImageContainer = styled.div`
   background-size: cover;
   background-position: center;
   border-radius: 5px;
+  /* border: 1px solid red; */
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+
+  h1 {
+    margin: 0px;
+    padding: 0px;
+    line-height: 0.6;
+    color: green;
+    font-weight: bold;
+    font-size: 50px;
+  }
 `;
 
 const DescriptionContainer = styled.div`

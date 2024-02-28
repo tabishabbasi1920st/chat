@@ -11,8 +11,13 @@ import Header from "./Header.js";
 export default function Home() {
   const navigate = useNavigate();
 
-  const { profile, selectedChat, setSocket, setConversationList } =
-    useContext(ChatContext);
+  const {
+    profile,
+    selectedChat,
+    setSocket,
+    onlineUsersList,
+    setOnlineUsersList,
+  } = useContext(ChatContext);
 
   useEffect(() => {
     if (Cookies.get("chatToken") === undefined) {
@@ -22,15 +27,13 @@ export default function Home() {
     const newSocket = io("http://localhost:5000");
     setSocket(newSocket);
 
-    newSocket.on("privateMessage", (newMessage) => {
-      console.log(newMessage);
-      setConversationList((prevList) => [...prevList, newMessage]);
+    // Listen for the updated online users list
+    newSocket.on("onlineUsers", (users) => {
+      setOnlineUsersList(users);
     });
 
     if (profile !== null) {
-      newSocket.emit("setEmail", profile.email, (ack) => {
-        console.log(ack);
-      });
+      newSocket.emit("setEmail", profile.email);
     }
 
     return () => {
