@@ -52,13 +52,15 @@ export default function Home() {
   return (
     <MainContainer>
       <Header />
-      <FirstContainer ischatselected={selectedChat}>
-        <AllChat />
-      </FirstContainer>
-      <SecondContainer ischatselected={selectedChat}>
-        {!selectedChat && renderEmptyChatContainer()}
-        {selectedChat && <ChatContainer />}
-      </SecondContainer>
+      <HybridContainer>
+        <FirstContainer ischatselected={selectedChat}>
+          <AllChat />
+        </FirstContainer>
+        <SecondContainer ischatselected={selectedChat}>
+          {!selectedChat && renderEmptyChatContainer()}
+          {selectedChat && <ChatContainer />}
+        </SecondContainer>
+      </HybridContainer>
     </MainContainer>
   );
 }
@@ -66,6 +68,10 @@ export default function Home() {
 const MainContainer = styled.div`
   min-height: 100vh;
   max-height: 100vh;
+`;
+
+const HybridContainer = styled.div`
+  height: calc(100vh - 65px);
   width: 100%;
   overflow: hidden;
   @media screen and (min-width: 768px) {

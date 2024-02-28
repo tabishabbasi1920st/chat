@@ -40,15 +40,17 @@ export default function AllChat() {
 
   const renderLoader = () => {
     return (
-      <Oval
-        visible={true}
-        height="100%"
-        width="25"
-        color="#fff"
-        ariaLabel="oval-loading"
-        wrapperStyle={{}}
-        wrapperClass=""
-      />
+      <LoaderContainer>
+        <Oval
+          visible={true}
+          height="100%"
+          width="50"
+          color="#fff"
+          ariaLabel="oval-loading"
+          wrapperStyle={{}}
+          wrapperClass=""
+        />
+      </LoaderContainer>
     );
   };
 
@@ -87,14 +89,7 @@ export default function AllChat() {
     }
   };
 
-  return (
-    <MainContainer>
-      <div className="top-container">
-        <p className="chats-para">Chats</p>
-      </div>
-      {renderAppropriateView()}
-    </MainContainer>
-  );
+  return <MainContainer>{renderAppropriateView()}</MainContainer>;
 }
 
 const MainContainer = styled.div`
@@ -109,13 +104,6 @@ const MainContainer = styled.div`
     border-right: 1px solid #334155;
   }
 
-  .top-container {
-    height: 70px;
-    border-bottom: 1px solid #334155;
-    display: flex;
-    align-items: center;
-  }
-
   .chats-para {
     color: #fff;
     font-size: 22px;
@@ -124,8 +112,9 @@ const MainContainer = styled.div`
   }
 
   ul {
-    height: calc(100vh - 70px);
+    height: calc(100vh - 50px);
     overflow: auto;
+    padding-bottom: 10px;
     &::-webkit-scrollbar {
       width: 6px;
     }
@@ -168,4 +157,11 @@ const DescriptionContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+`;
+
+const LoaderContainer = styled.div`
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;

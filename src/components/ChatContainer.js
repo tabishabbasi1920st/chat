@@ -161,7 +161,7 @@ const Status = styled.p`
 `;
 
 const MainChatContainer = styled.div`
-  height: calc(100vh - 140px);
+  height: calc(100vh - 205px);
   width: 100%;
   overflow-y: scroll;
   background-color: #0f172a;

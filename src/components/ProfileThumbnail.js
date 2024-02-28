@@ -60,16 +60,15 @@ export default function Profile() {
   };
 
   const renderFailureView = () => {
-    return <div>failure view</div>;
+    return (
+      <FailureContainer>
+        <p>Error</p>
+      </FailureContainer>
+    );
   };
 
   const renderSuccessView = () => {
-    return (
-      <div>
-        <p>{profile.name}</p>
-        <img src={profile.imageUrl} style={{ height: "50px", width: "50px" }} />
-      </div>
-    );
+    return <ImageContainer backgroundImage={profile.imageUrl}></ImageContainer>;
   };
 
   const renderAppropriateView = () => {
@@ -83,5 +82,41 @@ export default function Profile() {
     }
   };
 
-  return <div>{renderAppropriateView()}</div>;
+  return <MainConatainer>{renderAppropriateView()}</MainConatainer>;
 }
+
+const MainConatainer = styled.div`
+  height: 100%;
+  width: 55px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 5px;
+`;
+
+const ImageContainer = styled.div`
+  height: 100%;
+  width: 55px;
+  border-radius: 5px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url(${(props) => props.backgroundImage});
+  background-size: cover;
+  background-position: center;
+`;
+
+const FailureContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  height: 100%;
+  background-color: white;
+
+  p {
+    color: red;
+  }
+`;
