@@ -11,7 +11,7 @@ const apiConstants = {
 };
 
 export default function AllChat() {
-  const { setSelectedChat, onlineUsersList } = useContext(ChatContext);
+  const { setSelectedChat } = useContext(ChatContext);
   const [chatList, setChatList] = useState([]);
   const [apiStatus, setApiStatus] = useState(apiConstants.initial);
 
@@ -63,9 +63,7 @@ export default function AllChat() {
             <li key={id} onClick={() => setSelectedChat(eachChat)}>
               <BackgroundImageContainer
                 style={{ backgroundImage: `url(${imageUrl})` }}
-              >
-                {onlineUsersList.includes(email) && <h1>.</h1>}
-              </BackgroundImageContainer>
+              />
 
               <DescriptionContainer>
                 <p>{name}</p>

@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import Cookies from "js-cookie";
 import { Oval } from "react-loader-spinner";
 
+// api constants to track status of api.
 const apiConstants = {
   initial: "INITIAL",
   inProgress: "IN_PROGRESS",
@@ -15,16 +16,20 @@ const apiConstants = {
 };
 
 export default function ChatContainer() {
+  // Consuming Context Values here.
   const { selectedChat, setSelectedChat, socket, profile } =
     useContext(ChatContext);
 
   const chatContainerRef = useRef();
 
+  // Using hooks for state management.
   const [apiStatus, setApiStatus] = useState(apiConstants.initial);
   const [chatData, setChatData] = useState([]);
   const [messageInput, setMessageInput] = useState("");
+  const [isOnline, setIsOnline] = useState(false);
 
   useEffect(() => {
+    // Api to get chats of profile and selectedChat user.
     const gettingChats = async () => {
       setApiStatus(apiConstants.inProgress);
       const apiUrl = `http://localhost:5000/my-chats?me=${profile.email}&to=${selectedChat.email}`;
@@ -46,14 +51,29 @@ export default function ChatContainer() {
       }
     };
 
+    // Api to check wether selectedChat user is online or offline.
+    const getOnlineStatus = async () => {
+      const apiUrl = `http://localhost:5000/user-status?user=${selectedChat.email}`;
+      const response = await fetch(apiUrl);
+      const fetchdData = await response.json();
+      const onlineStatus = fetchdData.isOnline;
+      setIsOnline(onlineStatus);
+    };
+
+    // precaution if these are null or undefined.
     if (profile !== null && selectedChat !== null) {
       gettingChats();
+      getOnlineStatus();
     }
 
+    // Listening event to get message sent by selectedChat user.
     socket.on("privateMessage", (newMessage) => {
-      console.log(newMessage);
       setChatData((prevData) => [...prevData, newMessage]);
     });
+
+    return () => {
+      socket.off("privateMessage");
+    };
   }, [selectedChat]);
 
   useEffect(() => {
@@ -107,7 +127,7 @@ export default function ChatContainer() {
   };
 
   const buildMessagesUi = (eachConversation) => {
-    const { id, newMessage, dateTime, sentBy, sentTo } = eachConversation;
+    const { id, newMessage, dateTime, sentBy } = eachConversation;
 
     const dt = new Date(dateTime);
     const hour = dt.getHours();
@@ -164,7 +184,7 @@ export default function ChatContainer() {
         <DpContainer backgroundImage={selectedChat.imageUrl}></DpContainer>
         <InformationContainer>
           <Username>{selectedChat.name}</Username>
-          <Status>Active</Status>
+          <Status>{isOnline ? "Active" : "Offline"}</Status>
         </InformationContainer>
       </UserHeaderContainer>
 
@@ -290,6 +310,15 @@ const SendButton = styled.button`
   background-color: transparent;
   color: #94a3b8;
   cursor: pointer;
+  &:disabled {
+    opacity: 0.2;
+  }
+  &:enabled:hover {
+    background-color: white;
+    border-radius: 5px;
+    margin: 5px;
+    height: 70%;
+  }
 `;
 
 const MessageInput = styled.input`

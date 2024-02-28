@@ -11,13 +11,7 @@ import Header from "./Header.js";
 export default function Home() {
   const navigate = useNavigate();
 
-  const {
-    profile,
-    selectedChat,
-    setSocket,
-    onlineUsersList,
-    setOnlineUsersList,
-  } = useContext(ChatContext);
+  const { profile, selectedChat, setSocket } = useContext(ChatContext);
 
   useEffect(() => {
     if (Cookies.get("chatToken") === undefined) {
@@ -26,11 +20,6 @@ export default function Home() {
 
     const newSocket = io("http://localhost:5000");
     setSocket(newSocket);
-
-    // Listen for the updated online users list
-    newSocket.on("onlineUsers", (users) => {
-      setOnlineUsersList(users);
-    });
 
     if (profile !== null) {
       newSocket.emit("setEmail", profile.email);
