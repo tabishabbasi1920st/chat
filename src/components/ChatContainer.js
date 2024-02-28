@@ -6,6 +6,12 @@ import { ChatContext } from "./ChatContext";
 import { v4 as uuidv4 } from "uuid";
 import Cookies from "js-cookie";
 import { Oval } from "react-loader-spinner";
+import { FaSearch } from "react-icons/fa";
+import {
+  MdOutlineKeyboardArrowDown,
+  MdOutlineKeyboardArrowUp,
+} from "react-icons/md";
+import { IoMdClose } from "react-icons/io";
 
 // api constants to track status of api.
 const apiConstants = {
@@ -27,6 +33,9 @@ export default function ChatContainer() {
   const [chatData, setChatData] = useState([]);
   const [messageInput, setMessageInput] = useState("");
   const [isOnline, setIsOnline] = useState(false);
+  const [isChatSearchFocus, setIsChatSearchFocus] = useState(false);
+  const [chatSearchInput, setChatSearchInput] = useState("");
+  const [showHideChatSearch, setShowHideChatSearch] = useState(false);
 
   useEffect(() => {
     // Api to get chats of profile and selectedChat user.
@@ -177,6 +186,40 @@ export default function ChatContainer() {
     }
   };
 
+  const renderChatSearch = () => {
+    return (
+      <ChatSearchContainer>
+        <InnerContainer isChatSearchFocus={isChatSearchFocus}>
+          <button className="lens-btn">
+            <FaSearch />
+          </button>
+          <input
+            type="search"
+            placeholder="Search in this chat"
+            value={chatSearchInput}
+            onFocus={() => setIsChatSearchFocus(true)}
+            onBlur={() => setIsChatSearchFocus(false)}
+            onChange={(e) => setChatSearchInput(e.target.value)}
+          />
+        </InnerContainer>
+
+        <button className="arrow-btn">
+          <MdOutlineKeyboardArrowUp />
+        </button>
+        <button className="arrow-btn">
+          <MdOutlineKeyboardArrowDown />
+        </button>
+        <button
+          onClick={() => setShowHideChatSearch(false)}
+          className="arrow-btn"
+          style={{ backgroundColor: "#203047" }}
+        >
+          <IoMdClose />
+        </button>
+      </ChatSearchContainer>
+    );
+  };
+
   return (
     <MainContainer>
       {/* Header */}
@@ -189,10 +232,22 @@ export default function ChatContainer() {
           <Username>{selectedChat.name}</Username>
           <Status>{isOnline ? "Active" : "Offline"}</Status>
         </InformationContainer>
+        <HeaderOptionsContainer>
+          <li>
+            <SearchChatBtn onClick={() => setShowHideChatSearch(true)}>
+              <FaSearch />
+            </SearchChatBtn>
+          </li>
+        </HeaderOptionsContainer>
       </UserHeaderContainer>
-
+      {showHideChatSearch && renderChatSearch()}
       {/* Main */}
-      <MainChatContainer ref={chatContainerRef}>
+      <MainChatContainer
+        ref={chatContainerRef}
+        style={{
+          height: `calc(100vh - ${showHideChatSearch ? "255" : "205"}px)`,
+        }}
+      >
         {renderAppropriateView()}
       </MainChatContainer>
 
@@ -203,6 +258,11 @@ export default function ChatContainer() {
           type="text"
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleMessageSent();
+            }
+          }}
         />
         <SendButton
           disabled={messageInput === ""}
@@ -255,7 +315,6 @@ const BackButton = styled.button`
 const InformationContainer = styled.div`
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
   padding: 0px 10px;
   justify-content: space-between;
 `;
@@ -272,7 +331,6 @@ const Status = styled.p`
 `;
 
 const MainChatContainer = styled.div`
-  height: calc(100vh - 205px);
   width: 100%;
   overflow-y: scroll;
   background-color: #0f172a;
@@ -297,9 +355,10 @@ const UserFooterContainer = styled.div`
   justify-content: center;
   align-items: center;
   padding-left: 10px;
+
   border-top: 1px solid #334155;
   @media screen and (min-width: 768px) {
-    padding-left: 10px;
+    padding-right: 10px;
   }
 `;
 
@@ -323,6 +382,9 @@ const SendButton = styled.button`
     border-radius: 5px;
     margin: 5px;
     height: 70%;
+  }
+  @media screen and (min-width: 768px) {
+    display: none;
   }
 `;
 
@@ -424,4 +486,106 @@ const LoaderContainer = styled.div`
     color: #fff;
     margin-left: 5px;
   }
+`;
+
+const HeaderOptionsContainer = styled.ul`
+  flex-grow: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 10px;
+
+  li {
+  }
+`;
+
+const SearchChatBtn = styled.button`
+  height: 40px;
+  width: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #203047;
+  border: none;
+  color: #4e5d73;
+  border-radius: 5px;
+
+  &:hover {
+    background-color: #bfdbfe;
+    color: #326dec;
+  }
+`;
+
+const ChatSearchContainer = styled.div`
+  height: 50px;
+  width: 100%;
+  background-color: #132036;
+  display: flex;
+  align-items: center;
+  padding: 5px 5px 5px 10px;
+
+  button {
+    height: 100%;
+    min-width: 40px;
+    max-width: 40px;
+    flex-shrink: 0;
+    font-size: 18px;
+    border: none;
+    background-color: transparent;
+    color: #94a3b8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  input {
+    height: 100%;
+    flex-grow: 1;
+    background-color: transparent;
+    outline: none;
+    border: none;
+    font-size: 15px;
+    padding: 0px 10px 0px 5px;
+    color: #94a3b8;
+    &::placeholder {
+      color: #94a3b8;
+      font-weight: 400;
+    }
+  }
+
+  .arrow-btn {
+    all: unset;
+    height: 100%;
+    min-width: 40px;
+    max-width: 40px;
+    flex-shrink: 0;
+    font-size: 18px;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    margin: 0px 3px 0px 3px;
+    background-color: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    &:hover {
+      background-color: #bfdbfe;
+    }
+  }
+`;
+
+const InnerContainer = styled.div`
+  display: flex;
+  flex-grow: 1;
+  height: 100%;
+  border-radius: 5px;
+  border: ${({ isChatSearchFocus }) =>
+    isChatSearchFocus ? "none" : "1px solid #203047"};
+  background-color: ${({ isChatSearchFocus }) =>
+    isChatSearchFocus ? "#0f172a" : "transparent"};
+  transition: border 0.2s ease-in-out 0s, background-color 0.2s ease-in-out 0.2s;
 `;

@@ -62,6 +62,7 @@ export default function Home() {
 const MainContainer = styled.div`
   min-height: 100vh;
   max-height: 100vh;
+  overflow: hidden;
 `;
 
 const HybridContainer = styled.div`
