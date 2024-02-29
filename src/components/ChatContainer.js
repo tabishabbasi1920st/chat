@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import Cookies from "js-cookie";
 import { Oval } from "react-loader-spinner";
 import { FaSearch } from "react-icons/fa";
+import { FaImage } from "react-icons/fa6";
 import {
   MdOutlineKeyboardArrowDown,
   MdOutlineKeyboardArrowUp,
@@ -21,12 +22,20 @@ const apiConstants = {
   failure: "FAILURE",
 };
 
+// message type which type of message can share.
+const messageTypeConstants = {
+  text: "TEXT",
+  image: "IMAGE",
+};
+
 export default function ChatContainer() {
   // Consuming Context Values here.
   const { selectedChat, setSelectedChat, socket, profile } =
     useContext(ChatContext);
 
+  // Maintating all references.
   const chatContainerRef = useRef();
+  const imageInputRef = useRef();
 
   // Using hooks for state management.
   const [apiStatus, setApiStatus] = useState(apiConstants.initial);
@@ -36,6 +45,13 @@ export default function ChatContainer() {
   const [isChatSearchFocus, setIsChatSearchFocus] = useState(false);
   const [chatSearchInput, setChatSearchInput] = useState("");
   const [showHideChatSearch, setShowHideChatSearch] = useState(false);
+  const [messageType, setMessageType] = useState(messageTypeConstants.text);
+  const [image, setImage] = useState(null);
+
+  useEffect(() => {
+    console.log(chatData, ".............");
+    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+  }, [chatData]);
 
   useEffect(() => {
     // Api to get chats of profile and selectedChat user.
@@ -66,6 +82,7 @@ export default function ChatContainer() {
       const response = await fetch(apiUrl);
       const fetchdData = await response.json();
       const onlineStatus = fetchdData.isOnline;
+      console.log(onlineStatus);
       setIsOnline(onlineStatus);
     };
 
@@ -80,34 +97,109 @@ export default function ChatContainer() {
       setChatData((prevData) => [...prevData, newMessage]);
     });
 
+    socket.on("privateImage", (newImgMsg) => {
+      setChatData((prevList) => [...prevList, newImgMsg]);
+    });
+
     return () => {
       socket.off("privateMessage");
+      setMessageInput("");
     };
   }, [selectedChat]);
 
-  useEffect(() => {
-    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-  }, [chatData]);
+  const handleImageInput = (e) => {
+    const file = e.target.files[0];
 
-  const handleMessageSent = () => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result);
+      };
+
+      reader.readAsDataURL(file);
+
+      setMessageInput(file.name);
+      setMessageType(messageTypeConstants.image);
+    } else {
+      setImage(null);
+      setMessageInput("");
+      setMessageType(messageTypeConstants.image);
+    }
+  };
+
+  const handleImageSent = () => {
+    if (!image) {
+      console.error("No image selected");
+      return;
+    }
+
+    const formData = {
+      uploaded_image: image.split(",")[1],
+    };
+
     const dateAndTime = new Date();
+
     const message = {
       id: uuidv4(),
-      newMessage: messageInput,
+      newMessage: formData,
       dateTime: dateAndTime,
       sentBy: profile.email,
       sentTo: selectedChat.email,
+      type: "IMAGE",
     };
 
-    socket.emit("privateMessage", message, (ack) => {
-      if (ack.success) {
-        console.log(ack.message, ack.success);
+    socket.emit("privateImage", message, (ack) => {
+      const { success, message } = ack;
+      if (success) {
+        setChatData((prevList) => [...prevList, message]);
       } else {
-        console.error(ack.message, ack.success);
+        console.error(
+          "Error while getting image acknowlegement",
+          success,
+          message
+        );
       }
     });
+
     setMessageInput("");
-    setChatData((prevList) => [...prevList, message]);
+    setMessageType(messageTypeConstants.text);
+
+    // try {
+    //   if (!image) {
+    //     console.error("No image selected");
+    //     return;
+    //   }
+
+    //   const formData = {
+    //     uploaded_image: image.split(",")[1],
+    //   };
+
+    //   const apiUrl = "http://localhost:5000/upload-image";
+    //   const options = {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({ formData, imageName: messageInput }),
+    //   };
+    //   const response = await fetch(apiUrl, options);
+    //   if (response.ok) {
+    //     console.log("Image uploaded successfully");
+    //     setMessageInput("");
+    //   } else {
+    //     console.error("Error while uploading image: ");
+    //   }
+    // } catch (err) {
+    //   console.error("something went wrong while uploading image", err);
+    // }
+  };
+
+  const sendAppropMsgHandler = () => {
+    if (messageType === messageTypeConstants.text) {
+      handleMessageSent();
+    } else if (messageType === messageTypeConstants.image) {
+      handleImageSent();
+    }
   };
 
   const renderLoader = () => {
@@ -127,6 +219,28 @@ export default function ChatContainer() {
     );
   };
 
+  const handleMessageSent = () => {
+    const dateAndTime = new Date();
+    const message = {
+      id: uuidv4(),
+      newMessage: messageInput,
+      dateTime: dateAndTime,
+      sentBy: profile.email,
+      sentTo: selectedChat.email,
+      type: messageTypeConstants.text,
+    };
+
+    socket.emit("privateMessage", message, (ack) => {
+      if (ack.success) {
+        console.log(ack.message, ack.success);
+      } else {
+        console.error(ack.message, ack.success);
+      }
+    });
+    setMessageInput("");
+    setChatData((prevList) => [...prevList, message]);
+  };
+
   const renderFailureView = () => {
     return (
       <LoaderContainer>
@@ -135,8 +249,10 @@ export default function ChatContainer() {
     );
   };
 
-  const buildMessagesUi = (eachConversation) => {
-    const { id, newMessage, dateTime, sentBy } = eachConversation;
+  const buildMessagesUi = (eachConversation, index) => {
+    const { id, newMessage, dateTime, sentBy, sentTo, type } = eachConversation;
+    console.log(newMessage);
+    const isContain = newMessage.toLowerCase().includes(chatSearchInput);
 
     const dt = new Date(dateTime);
     const hour = dt.getHours();
@@ -144,20 +260,51 @@ export default function ChatContainer() {
     const amOrPm = hour < 12 ? "AM" : "PM";
     const minutes = dt.getMinutes().toLocaleString();
 
+    const backendPort = 5000;
+    const imageSource = `http://localhost:${backendPort}/${newMessage}`;
+
     if (sentBy === profile.email) {
       return (
-        <SentMessage key={id}>
-          <p className="text-message">{newMessage}</p>
+        <SentMessage key={index}>
+          {type === messageTypeConstants.text ? (
+            <p
+              className="text-message"
+              style={{
+                backgroundColor: `${
+                  isContain && showHideChatSearch ? "green" : ""
+                }`,
+              }}
+            >
+              {newMessage}
+            </p>
+          ) : (
+            <img src={imageSource} alt="img" />
+          )}
+
           <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
         </SentMessage>
       );
     }
     if (sentBy === selectedChat.email) {
       return (
-        <ReceivedMessage key={id}>
+        <ReceivedMessage key={index}>
           <SenderDp backgroundImage={selectedChat.imageUrl}></SenderDp>
           <div className="sender-msg-container">
-            <p className="text-message">{newMessage}</p>
+            {type === messageTypeConstants.text ? (
+              <p
+                className="text-message"
+                style={{
+                  backgroundColor: `${
+                    isContain && showHideChatSearch ? "green" : ""
+                  }`,
+                }}
+              >
+                {newMessage}
+              </p>
+            ) : (
+              <img src={imageSource} alt="img" />
+            )}
+
             <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
           </div>
         </ReceivedMessage>
@@ -168,7 +315,9 @@ export default function ChatContainer() {
   const renderSuccessView = () => {
     return (
       <>
-        {chatData.map((eachConversation) => buildMessagesUi(eachConversation))}
+        {chatData.map((eachConversation, index) =>
+          buildMessagesUi(eachConversation, index)
+        )}
       </>
     );
   };
@@ -199,18 +348,23 @@ export default function ChatContainer() {
             value={chatSearchInput}
             onFocus={() => setIsChatSearchFocus(true)}
             onBlur={() => setIsChatSearchFocus(false)}
-            onChange={(e) => setChatSearchInput(e.target.value)}
+            onChange={(e) => {
+              setChatSearchInput(e.target.value.toLowerCase());
+            }}
           />
         </InnerContainer>
 
-        <button className="arrow-btn">
+        {/* <button className="arrow-btn">
           <MdOutlineKeyboardArrowUp />
         </button>
         <button className="arrow-btn">
           <MdOutlineKeyboardArrowDown />
-        </button>
+        </button> */}
         <button
-          onClick={() => setShowHideChatSearch(false)}
+          onClick={() => {
+            setShowHideChatSearch(false);
+            setChatSearchInput("");
+          }}
           className="arrow-btn"
           style={{ backgroundColor: "#203047" }}
         >
@@ -253,21 +407,35 @@ export default function ChatContainer() {
 
       {/* Footer */}
       <UserFooterContainer>
+        <ImageInputButton
+          onClick={() => document.getElementById("imageInput").click()}
+        >
+          <FaImage />
+        </ImageInputButton>
+        <input
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={handleImageInput}
+          ref={imageInputRef}
+          id="imageInput"
+          enctype="multipart/form-data"
+        />
         <MessageInput
           placeholder="Type a message..."
           type="text"
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleMessageSent();
+            if (e.key === "Enter" && messageInput !== "") {
+              sendAppropMsgHandler();
             }
           }}
         />
         <SendButton
           disabled={messageInput === ""}
           type="button"
-          onClick={handleMessageSent}
+          onClick={sendAppropMsgHandler}
         >
           <MdSend />
         </SendButton>
@@ -417,6 +585,7 @@ const SentMessage = styled.div`
   padding: 10px;
   color: #fff;
   max-width: 85%;
+  max-height: 400px;
   margin-left: auto;
   border-radius: 10px;
   margin-top: 10px;
@@ -434,12 +603,18 @@ const SentMessage = styled.div`
     font-size: 11px;
     color: #94a3b8;
   }
+
+  img {
+    height: 100%;
+    width: 100%;
+  }
 `;
 
 const ReceivedMessage = styled.div`
   padding: 10px;
   color: #fff;
   max-width: 85%;
+  max-height: 400px;
   margin-right: auto;
   margin-top: 10px;
   margin-bottom: 10px;
@@ -460,7 +635,13 @@ const ReceivedMessage = styled.div`
     background-color: #132036;
     border-radius: 10px;
     padding: 10px;
-    /* border: 2px solid red; */
+    max-height: 100%;
+    max-width: 100%;
+  }
+
+  img {
+    height: 100%;
+    width: 100%;
   }
 `;
 
@@ -588,4 +769,25 @@ const InnerContainer = styled.div`
   background-color: ${({ isChatSearchFocus }) =>
     isChatSearchFocus ? "#0f172a" : "transparent"};
   transition: border 0.2s ease-in-out 0s, background-color 0.2s ease-in-out 0.2s;
+`;
+
+const ImageInputButton = styled.button`
+  height: 70%;
+  min-width: 45px;
+  max-width: 45px;
+  flex-shrink: 0;
+  font-size: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  border-radius: 5px;
+  background-color: #203047;
+  color: #4e5d73;
+  margin-right: 10px;
+  cursor: pointer;
+  &:hover {
+    color: #326dec;
+    background-color: #bfdbfe;
+  }
 `;
