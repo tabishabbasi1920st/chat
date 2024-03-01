@@ -6,13 +6,15 @@ import { ChatContext } from "./ChatContext";
 import { v4 as uuidv4 } from "uuid";
 import Cookies from "js-cookie";
 import { Oval } from "react-loader-spinner";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaMicrophone } from "react-icons/fa";
 import { FaImage } from "react-icons/fa6";
 import {
   MdOutlineKeyboardArrowDown,
   MdOutlineKeyboardArrowUp,
 } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
+import AudioRecorder from "./AudioRecorder";
+import Modal from "./Modal";
 
 // API constants to track the status of the API.
 const apiConstants = {
@@ -26,6 +28,7 @@ const apiConstants = {
 const messageTypeConstants = {
   text: "TEXT",
   image: "IMAGE",
+  audio: "AUDIO",
 };
 
 export default function ChatContainer() {
@@ -47,6 +50,7 @@ export default function ChatContainer() {
   const [showHideChatSearch, setShowHideChatSearch] = useState(false);
   const [messageType, setMessageType] = useState(messageTypeConstants.text);
   const [image, setImage] = useState(null);
+  const [isModalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     // Scroll to the bottom of the chat when new messages are received.
@@ -186,7 +190,8 @@ export default function ChatContainer() {
     }
   };
 
-  // Render a loader component.
+  // Render a loader component
+
   const renderLoader = () => {
     return (
       <LoaderContainer>
@@ -244,6 +249,8 @@ export default function ChatContainer() {
     const { id, newMessage, dateTime, sentBy, sentTo, type } = eachConversation;
     const isContain = newMessage.toLowerCase().includes(chatSearchInput);
 
+    console.log(type);
+
     const dt = new Date(dateTime);
     const hour = dt.getHours();
     const formattedHours = hour % 12 || 12; // convert to 12-hour format.
@@ -256,7 +263,7 @@ export default function ChatContainer() {
     if (sentBy === profile.email) {
       return (
         <SentMessage key={index}>
-          {type === messageTypeConstants.text ? (
+          {type === messageTypeConstants.text && (
             <p
               className="text-message"
               style={{
@@ -267,10 +274,13 @@ export default function ChatContainer() {
             >
               {newMessage}
             </p>
-          ) : (
+          )}{" "}
+          {type === messageTypeConstants.image && (
             <img src={imageSource} alt="img" />
           )}
-
+          {type === messageTypeConstants.audio && (
+            <audio controls src={`http://localhost:5000/${newMessage}`} />
+          )}
           <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
         </SentMessage>
       );
@@ -280,7 +290,7 @@ export default function ChatContainer() {
         <ReceivedMessage key={index}>
           <SenderDp backgroundImage={selectedChat.imageUrl}></SenderDp>
           <div className="sender-msg-container">
-            {type === messageTypeConstants.text ? (
+            {type === messageTypeConstants.text && (
               <p
                 className="text-message"
                 style={{
@@ -291,10 +301,11 @@ export default function ChatContainer() {
               >
                 {newMessage}
               </p>
-            ) : (
-              <img src={imageSource} alt="img" />
+            )}{" "}
+            {type === messageTypeConstants.image && (
+              <audio controls src={`http://localhost:5000/${newMessage}`} />
             )}
-
+            {type === messageTypeConstants.audio && <audio />}
             <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
           </div>
         </ReceivedMessage>
@@ -361,8 +372,23 @@ export default function ChatContainer() {
     );
   };
 
+  const openModel = () => {
+    setModalOpen(true);
+  };
+
+  const closeModel = () => {
+    setModalOpen(false);
+  };
+
   return (
     <MainContainer>
+      <Modal isOpen={isModalOpen}>
+        <AudioRecorder
+          onClose={closeModel}
+          setChatData={setChatData}
+          setMessageType={setMessageType}
+        />
+      </Modal>
       {/* Header */}
       <UserHeaderContainer>
         <BackButton type="button" onClick={() => setSelectedChat(null)}>
@@ -408,6 +434,16 @@ export default function ChatContainer() {
           id="imageInput"
           enctype="multipart/form-data"
         />
+
+        <MicButton
+          onClick={() => {
+            setMessageType(messageTypeConstants.audio);
+            openModel();
+          }}
+        >
+          <FaMicrophone />
+        </MicButton>
+
         <MessageInput
           placeholder="Type a message..."
           type="text"
@@ -759,6 +795,27 @@ const InnerContainer = styled.div`
 `;
 
 const ImageInputButton = styled.button`
+  height: 70%;
+  min-width: 45px;
+  max-width: 45px;
+  flex-shrink: 0;
+  font-size: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  border-radius: 5px;
+  background-color: #203047;
+  color: #4e5d73;
+  margin-right: 10px;
+  cursor: pointer;
+  &:hover {
+    color: #326dec;
+    background-color: #bfdbfe;
+  }
+`;
+
+const MicButton = styled.button`
   height: 70%;
   min-width: 45px;
   max-width: 45px;
