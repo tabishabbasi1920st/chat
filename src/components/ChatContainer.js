@@ -113,6 +113,11 @@ export default function ChatContainer() {
       setChatData((prevList) => [...prevList, newImgMsg]);
     });
 
+    socket.on("privateAudio", (message) => {
+      console.log("..............event in frontend chatcontainer");
+      setChatData((prevData) => [...prevData, message]);
+    });
+
     // Cleanup socket event listeners and reset message input when component unmounts.
     return () => {
       socket.off("privateMessage");
@@ -303,9 +308,11 @@ export default function ChatContainer() {
               </p>
             )}{" "}
             {type === messageTypeConstants.image && (
+              <img src={imageSource} alt="img" />
+            )}
+            {type === messageTypeConstants.audio && (
               <audio controls src={`http://localhost:5000/${newMessage}`} />
             )}
-            {type === messageTypeConstants.audio && <audio />}
             <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
           </div>
         </ReceivedMessage>

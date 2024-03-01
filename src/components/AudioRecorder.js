@@ -135,7 +135,6 @@ const AudioRecorder = ({ onClose, setChatData, setMessageType }) => {
       // Emit the privateAudio event to the server.
       socket.emit("privateAudio", message, (ack) => {
         const { success, message } = ack;
-        console.log("................", message);
         if (success) {
           // Update the chatData with the sent audio message.
           setChatData((prevList) => [...prevList, message]);
