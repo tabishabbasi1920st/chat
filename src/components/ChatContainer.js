@@ -14,7 +14,7 @@ import {
 } from "react-icons/md";
 import { IoMdClose } from "react-icons/io";
 
-// api constants to track status of api.
+// API constants to track the status of the API.
 const apiConstants = {
   initial: "INITIAL",
   inProgress: "IN_PROGRESS",
@@ -22,7 +22,7 @@ const apiConstants = {
   failure: "FAILURE",
 };
 
-// message type which type of message can share.
+// Message type to identify the type of message being shared.
 const messageTypeConstants = {
   text: "TEXT",
   image: "IMAGE",
@@ -33,7 +33,7 @@ export default function ChatContainer() {
   const { selectedChat, setSelectedChat, socket, profile } =
     useContext(ChatContext);
 
-  // Maintating all references.
+  // Maintaining all references.
   const chatContainerRef = useRef();
   const imageInputRef = useRef();
 
@@ -49,12 +49,12 @@ export default function ChatContainer() {
   const [image, setImage] = useState(null);
 
   useEffect(() => {
-    console.log(chatData, ".............");
+    // Scroll to the bottom of the chat when new messages are received.
     chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
   }, [chatData]);
 
   useEffect(() => {
-    // Api to get chats of profile and selectedChat user.
+    // API to get chats of profile and selectedChat user.
     const gettingChats = async () => {
       setApiStatus(apiConstants.inProgress);
       const apiUrl = `http://localhost:5000/my-chats?me=${profile.email}&to=${selectedChat.email}`;
@@ -66,33 +66,41 @@ export default function ChatContainer() {
         },
       };
 
-      const response = await fetch(apiUrl, options);
-      if (response.ok) {
-        const chatData = await response.json();
-        setChatData(chatData);
-        setApiStatus(apiConstants.success);
-      } else {
+      try {
+        const response = await fetch(apiUrl, options);
+        if (response.ok) {
+          const chatData = await response.json();
+          setChatData(chatData);
+          setApiStatus(apiConstants.success);
+        } else {
+          setApiStatus(apiConstants.failure);
+        }
+      } catch (error) {
+        console.error("Error fetching chats:", error);
         setApiStatus(apiConstants.failure);
       }
     };
 
-    // Api to check wether selectedChat user is online or offline.
+    // API to check whether selectedChat user is online or offline.
     const getOnlineStatus = async () => {
       const apiUrl = `http://localhost:5000/user-status?user=${selectedChat.email}`;
-      const response = await fetch(apiUrl);
-      const fetchdData = await response.json();
-      const onlineStatus = fetchdData.isOnline;
-      console.log(onlineStatus);
-      setIsOnline(onlineStatus);
+      try {
+        const response = await fetch(apiUrl);
+        const fetchedData = await response.json();
+        const onlineStatus = fetchedData.isOnline;
+        setIsOnline(onlineStatus);
+      } catch (error) {
+        console.error("Error fetching online status:", error);
+      }
     };
 
-    // precaution if these are null or undefined.
+    // Fetch chats and online status only if profile and selectedChat are not null.
     if (profile !== null && selectedChat !== null) {
       gettingChats();
       getOnlineStatus();
     }
 
-    // Listening event to get message sent by selectedChat user.
+    // Listen to events to get messages sent by the selectedChat user.
     socket.on("privateMessage", (newMessage) => {
       setChatData((prevData) => [...prevData, newMessage]);
     });
@@ -101,6 +109,7 @@ export default function ChatContainer() {
       setChatData((prevList) => [...prevList, newImgMsg]);
     });
 
+    // Cleanup socket event listeners and reset message input when component unmounts.
     return () => {
       socket.off("privateMessage");
       setMessageInput("");
@@ -127,6 +136,7 @@ export default function ChatContainer() {
     }
   };
 
+  // Handle sending the selected image to the server.
   const handleImageSent = () => {
     if (!image) {
       console.error("No image selected");
@@ -148,13 +158,15 @@ export default function ChatContainer() {
       type: "IMAGE",
     };
 
+    // Emit the privateImage event to the server.
     socket.emit("privateImage", message, (ack) => {
       const { success, message } = ack;
       if (success) {
+        // Update the chatData with the sent image message.
         setChatData((prevList) => [...prevList, message]);
       } else {
         console.error(
-          "Error while getting image acknowlegement",
+          "Error while getting image acknowledgment",
           success,
           message
         );
@@ -163,38 +175,10 @@ export default function ChatContainer() {
 
     setMessageInput("");
     setMessageType(messageTypeConstants.text);
-
-    // try {
-    //   if (!image) {
-    //     console.error("No image selected");
-    //     return;
-    //   }
-
-    //   const formData = {
-    //     uploaded_image: image.split(",")[1],
-    //   };
-
-    //   const apiUrl = "http://localhost:5000/upload-image";
-    //   const options = {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({ formData, imageName: messageInput }),
-    //   };
-    //   const response = await fetch(apiUrl, options);
-    //   if (response.ok) {
-    //     console.log("Image uploaded successfully");
-    //     setMessageInput("");
-    //   } else {
-    //     console.error("Error while uploading image: ");
-    //   }
-    // } catch (err) {
-    //   console.error("something went wrong while uploading image", err);
-    // }
   };
 
-  const sendAppropMsgHandler = () => {
+  // Handle sending the appropriate message (text or image) to the server.
+  const sendAppropriateMsgHandler = () => {
     if (messageType === messageTypeConstants.text) {
       handleMessageSent();
     } else if (messageType === messageTypeConstants.image) {
@@ -202,6 +186,7 @@ export default function ChatContainer() {
     }
   };
 
+  // Render a loader component.
   const renderLoader = () => {
     return (
       <LoaderContainer>
@@ -219,6 +204,7 @@ export default function ChatContainer() {
     );
   };
 
+  // Handle sending a text message.
   const handleMessageSent = () => {
     const dateAndTime = new Date();
     const message = {
@@ -230,6 +216,7 @@ export default function ChatContainer() {
       type: messageTypeConstants.text,
     };
 
+    // Emit the privateMessage event to the server.
     socket.emit("privateMessage", message, (ack) => {
       if (ack.success) {
         console.log(ack.message, ack.success);
@@ -237,10 +224,13 @@ export default function ChatContainer() {
         console.error(ack.message, ack.success);
       }
     });
-    setMessageInput("");
+
+    // Update the chatData with the sent text message.
     setChatData((prevList) => [...prevList, message]);
+    setMessageInput("");
   };
 
+  // Render a failure view.
   const renderFailureView = () => {
     return (
       <LoaderContainer>
@@ -249,9 +239,9 @@ export default function ChatContainer() {
     );
   };
 
+  // Build the UI for each message in the chat.
   const buildMessagesUi = (eachConversation, index) => {
     const { id, newMessage, dateTime, sentBy, sentTo, type } = eachConversation;
-    console.log(newMessage);
     const isContain = newMessage.toLowerCase().includes(chatSearchInput);
 
     const dt = new Date(dateTime);
@@ -312,6 +302,7 @@ export default function ChatContainer() {
     }
   };
 
+  // Render the success view with the chat messages.
   const renderSuccessView = () => {
     return (
       <>
@@ -322,6 +313,7 @@ export default function ChatContainer() {
     );
   };
 
+  // Render the appropriate view based on the API status.
   const renderAppropriateView = () => {
     switch (apiStatus) {
       case apiConstants.inProgress:
@@ -335,6 +327,7 @@ export default function ChatContainer() {
     }
   };
 
+  // Render the chat search input component.
   const renderChatSearch = () => {
     return (
       <ChatSearchContainer>
@@ -354,12 +347,6 @@ export default function ChatContainer() {
           />
         </InnerContainer>
 
-        {/* <button className="arrow-btn">
-          <MdOutlineKeyboardArrowUp />
-        </button>
-        <button className="arrow-btn">
-          <MdOutlineKeyboardArrowDown />
-        </button> */}
         <button
           onClick={() => {
             setShowHideChatSearch(false);
@@ -428,14 +415,14 @@ export default function ChatContainer() {
           onChange={(e) => setMessageInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && messageInput !== "") {
-              sendAppropMsgHandler();
+              sendAppropriateMsgHandler();
             }
           }}
         />
         <SendButton
           disabled={messageInput === ""}
           type="button"
-          onClick={sendAppropMsgHandler}
+          onClick={sendAppropriateMsgHandler}
         >
           <MdSend />
         </SendButton>
