@@ -121,6 +121,7 @@ export default function ChatContainer() {
     // Cleanup socket event listeners and reset message input when component unmounts.
     return () => {
       socket.off("privateMessage");
+      socket.off("privateAudio");
       setMessageInput("");
     };
   }, [selectedChat]);
