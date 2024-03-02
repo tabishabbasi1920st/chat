@@ -1,8 +1,12 @@
-import styled from "styled-components";
 import { useState, useEffect, useContext } from "react";
 import Cookies from "js-cookie";
-import { ChatContext } from "./ChatContext";
+import { ChatContext } from "../context/ChatContext";
 import { Oval } from "react-loader-spinner";
+import {
+  FailureContainer,
+  ImageContainer,
+  MainConatainer,
+} from "./styledComponents";
 
 const apiConstants = {
   initial: "INITIAL",
@@ -84,39 +88,3 @@ export default function Profile() {
 
   return <MainConatainer>{renderAppropriateView()}</MainConatainer>;
 }
-
-const MainConatainer = styled.div`
-  height: 100%;
-  width: 55px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  border-radius: 5px;
-`;
-
-const ImageContainer = styled.div`
-  height: 100%;
-  width: 55px;
-  border-radius: 5px;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-image: url(${(props) => props.backgroundImage});
-  background-size: cover;
-  background-position: center;
-`;
-
-const FailureContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-grow: 1;
-  height: 100%;
-  background-color: white;
-
-  p {
-    color: red;
-  }
-`;

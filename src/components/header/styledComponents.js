@@ -1,15 +1,6 @@
 import styled from "styled-components";
-import ProfileThumbnail from "./ProfileThumbnail";
 
-export default function Header() {
-  return (
-    <MainContainer>
-      <ProfileThumbnail />
-    </MainContainer>
-  );
-}
-
-const MainContainer = styled.div`
+export const MainContainer = styled.div`
   height: 65px;
   width: 100%;
   border-bottom: 1px solid #334155;

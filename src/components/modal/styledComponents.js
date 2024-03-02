@@ -1,21 +1,6 @@
-import React, { useState } from "react";
 import styled from "styled-components";
 
-const Modal = ({ isOpen, children }) => {
-  if (!isOpen) {
-    return null;
-  }
-
-  return (
-    <ModalOverlay>
-      <ModalContainer>{children}</ModalContainer>
-    </ModalOverlay>
-  );
-};
-
-export default Modal;
-
-const ModalOverlay = styled.div`
+export const ModalOverlay = styled.div`
   position: fixed;
   padding: 10px;
   top: 0;
@@ -29,7 +14,7 @@ const ModalOverlay = styled.div`
   z-index: 1000;
 `;
 
-const ModalContainer = styled.div`
+export const ModalContainer = styled.div`
   background: #132036;
   width: 100%;
 
