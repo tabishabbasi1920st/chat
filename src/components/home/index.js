@@ -1,8 +1,8 @@
-import AllChat from "../allChats/index.js";
-import ChatContainer from "../chatContainer/index.js";
-import Header from "../header/index.js";
+import AllChat from "../AllChats";
+import ChatContainer from "../ChatContainer";
+import Header from "../Header";
 import io from "socket.io-client";
-import { ChatContext } from "../context/ChatContext.js";
+import { ChatContext } from "../Context/ChatContext.js";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { useContext, useEffect } from "react";

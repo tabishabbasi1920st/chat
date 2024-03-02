@@ -1,9 +1,9 @@
 import "./App.css";
-import Register from "./components/register/index.js";
-import Login from "./components/login/index.js";
-import Home from "./components/home/index.js";
+import Register from "./components/Register";
+import Login from "./components/Login";
+import Home from "./components/Home";
 import { Route, Routes } from "react-router-dom";
-import ChatContextProvider from "./components/context/ChatContext.js";
+import ChatContextProvider from "./components/Context/ChatContext";
 
 export default function App() {
   return (

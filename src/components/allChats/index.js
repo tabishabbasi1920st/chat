@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { ChatContext } from "../context/ChatContext";
+import { ChatContext } from "../Context/ChatContext";
 import { Oval } from "react-loader-spinner";
 import { FaSearch } from "react-icons/fa";
 import {

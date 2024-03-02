@@ -25,15 +25,15 @@ import {
 import { IoArrowBackSharp } from "react-icons/io5";
 import { MdSend } from "react-icons/md";
 import { useContext, useEffect, useRef, useState } from "react";
-import { ChatContext } from "../context/ChatContext";
+import { ChatContext } from "../Context/ChatContext";
 import { v4 as uuidv4 } from "uuid";
 import Cookies from "js-cookie";
 import { Oval } from "react-loader-spinner";
 import { FaSearch, FaMicrophone } from "react-icons/fa";
 import { FaImage } from "react-icons/fa6";
 import { IoMdClose } from "react-icons/io";
-import AudioRecorder from "../audioRecorder/index";
-import Modal from "../modal/index";
+import AudioRecorder from "../AudioRecorder";
+import Modal from "../Modal";
 
 // API constants to track the status of the API.
 const apiConstants = {
@@ -141,6 +141,7 @@ export default function ChatContainer() {
     return () => {
       socket.off("privateMessage");
       socket.off("privateAudio");
+      socket.off("privateImage");
       setMessageInput("");
     };
   }, [selectedChat]);
