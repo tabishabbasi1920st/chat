@@ -20,18 +20,27 @@ const apiConstants = {
 };
 
 export default function AllChat() {
-  const { setSelectedChat } = useContext(ChatContext);
+  const { setSelectedChat, profile } = useContext(ChatContext);
   const [chatList, setChatList] = useState([]);
   const [apiStatus, setApiStatus] = useState(apiConstants.initial);
   const [isSearchFocus, setIsSearchFocus] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+
+  console.log("...", profile);
 
   useEffect(() => {
     const getAllChats = async () => {
       try {
         setApiStatus(apiConstants.inProgress);
         const apiUrl = "http://localhost:5000/all-chats";
-        const response = await fetch(apiUrl);
+        const options = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user: profile.email }),
+        };
+        const response = await fetch(apiUrl, options);
         const fetchedData = await response.json();
         if (response.ok) {
           const chatList = fetchedData.allChats;
@@ -46,8 +55,8 @@ export default function AllChat() {
       }
     };
 
-    getAllChats();
-  }, []);
+    profile !== null && getAllChats();
+  }, [profile]);
 
   const renderLoader = () => {
     return (
