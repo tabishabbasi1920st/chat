@@ -55,8 +55,10 @@ export const Status = styled.p`
 `;
 
 export const MainChatContainer = styled.div`
-  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
   overflow-y: scroll;
+  overflow-x: hidden;
   background-color: #0f172a;
   padding: 0px 10px 0px 10px;
   display: flex;
@@ -107,6 +109,9 @@ export const SendButton = styled.button`
     margin: 5px;
     height: 70%;
   }
+  &:disabled:hover {
+    cursor: not-allowed;
+  }
   @media screen and (min-width: 768px) {
     display: none;
   }
@@ -119,10 +124,10 @@ export const MessageInput = styled.input`
   border-radius: 5px;
   outline: none;
   flex-grow: 1;
-  flex-shrink: 0;
   color: #94a3b8;
   font-size: 16px;
   padding: 5px 10px;
+  min-width: 50px;
 
   &::placeholder {
     color: #94a3b8;
@@ -135,70 +140,6 @@ export const DpContainer = styled.div`
   border-radius: 5px;
   background-image: url(${(props) => props.backgroundImage});
   background-size: cover;
-`;
-
-export const SentMessage = styled.div`
-  padding: 10px;
-  color: #fff;
-  max-width: 85%;
-  max-height: 400px;
-  margin-left: auto;
-  border-radius: 10px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  background-color: #2563eb;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-
-  .text-message {
-    font-size: 14px;
-  }
-
-  .text-message-time {
-    font-size: 11px;
-    color: #94a3b8;
-  }
-
-  img {
-    height: 100%;
-    width: 100%;
-  }
-`;
-
-export const ReceivedMessage = styled.div`
-  padding: 10px;
-  color: #fff;
-  max-width: 85%;
-  max-height: 400px;
-  margin-right: auto;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  background-color: #0f172a;
-  display: flex;
-  gap: 10px;
-
-  .text-message {
-    font-size: 14px;
-  }
-
-  .text-message-time {
-    font-size: 11px;
-    color: #94a3b8;
-  }
-
-  .sender-msg-container {
-    background-color: #132036;
-    border-radius: 10px;
-    padding: 10px;
-    max-height: 100%;
-    max-width: 100%;
-  }
-
-  img {
-    height: 100%;
-    width: 100%;
-  }
 `;
 
 export const SenderDp = styled.div`
@@ -327,28 +268,7 @@ export const InnerContainer = styled.div`
   transition: border 0.2s ease-in-out 0s, background-color 0.2s ease-in-out 0.2s;
 `;
 
-export const ImageInputButton = styled.button`
-  height: 70%;
-  min-width: 45px;
-  max-width: 45px;
-  flex-shrink: 0;
-  font-size: 25px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: none;
-  border-radius: 5px;
-  background-color: #203047;
-  color: #4e5d73;
-  margin-right: 10px;
-  cursor: pointer;
-  &:hover {
-    color: #326dec;
-    background-color: #bfdbfe;
-  }
-`;
-
-export const MicButton = styled.button`
+export const MediaButtons = styled.button`
   height: 70%;
   min-width: 45px;
   max-width: 45px;

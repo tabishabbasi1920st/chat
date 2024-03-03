@@ -6,6 +6,8 @@ const ChatContextProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
   const [selectedChat, setSelectedChat] = useState(null);
   const [socket, setSocket] = useState(null);
+  const [fullImageModal, setFullImageModal] = useState(false);
+  const [fullImageUrl, setFullImageUrl] = useState(null);
 
   return (
     <ChatContext.Provider
@@ -16,6 +18,10 @@ const ChatContextProvider = ({ children }) => {
         setSelectedChat,
         socket,
         setSocket,
+        fullImageModal,
+        setFullImageModal,
+        fullImageUrl,
+        setFullImageUrl,
       }}
     >
       {children}

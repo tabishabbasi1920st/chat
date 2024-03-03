@@ -10,16 +10,12 @@ import {
   SendButton,
   MessageInput,
   DpContainer,
-  SentMessage,
-  ReceivedMessage,
-  SenderDp,
   LoaderContainer,
   HeaderOptionsContainer,
   SearchChatBtn,
   ChatSearchContainer,
   InnerContainer,
-  ImageInputButton,
-  MicButton,
+  MediaButtons,
 } from "./styledComponents";
 
 import { IoArrowBackSharp } from "react-icons/io5";
@@ -34,6 +30,9 @@ import { FaImage } from "react-icons/fa6";
 import { IoMdClose } from "react-icons/io";
 import AudioRecorder from "../AudioRecorder";
 import Modal from "../Modal";
+import TextMessages from "../TextMessages";
+import ImageMessages from "../ImageMessages";
+import AudioMessages from "../AudioMessages";
 
 // API constants to track the status of the API.
 const apiConstants = {
@@ -69,7 +68,7 @@ export default function ChatContainer() {
   const [showHideChatSearch, setShowHideChatSearch] = useState(false);
   const [messageType, setMessageType] = useState(messageTypeConstants.text);
   const [image, setImage] = useState(null);
-  const [isModalOpen, setModalOpen] = useState(false);
+  const [isRecordingModalOpen, setIsRecordingModalOpen] = useState(false);
 
   useEffect(() => {
     // Scroll to the bottom of the chat when new messages are received.
@@ -270,84 +269,23 @@ export default function ChatContainer() {
     );
   };
 
-  // Build the UI for each message in the chat.
-  const buildMessagesUi = (eachConversation, index) => {
-    const { id, newMessage, dateTime, sentBy, sentTo, type } = eachConversation;
-    const isContain = newMessage.toLowerCase().includes(chatSearchInput);
-
-    console.log(type);
-
-    const dt = new Date(dateTime);
-    const hour = dt.getHours();
-    const formattedHours = hour % 12 || 12; // convert to 12-hour format.
-    const amOrPm = hour < 12 ? "AM" : "PM";
-    const minutes = dt.getMinutes().toLocaleString();
-
-    const backendPort = 5000;
-    const imageSource = `http://localhost:${backendPort}/${newMessage}`;
-
-    if (sentBy === profile.email) {
-      return (
-        <SentMessage key={index}>
-          {type === messageTypeConstants.text && (
-            <p
-              className="text-message"
-              style={{
-                backgroundColor: `${
-                  isContain && showHideChatSearch ? "green" : ""
-                }`,
-              }}
-            >
-              {newMessage}
-            </p>
-          )}{" "}
-          {type === messageTypeConstants.image && (
-            <img src={imageSource} alt="img" />
-          )}
-          {type === messageTypeConstants.audio && (
-            <audio controls src={`http://localhost:5000/${newMessage}`} />
-          )}
-          <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
-        </SentMessage>
-      );
-    }
-    if (sentBy === selectedChat.email) {
-      return (
-        <ReceivedMessage key={index}>
-          <SenderDp backgroundImage={selectedChat.imageUrl}></SenderDp>
-          <div className="sender-msg-container">
-            {type === messageTypeConstants.text && (
-              <p
-                className="text-message"
-                style={{
-                  backgroundColor: `${
-                    isContain && showHideChatSearch ? "green" : ""
-                  }`,
-                }}
-              >
-                {newMessage}
-              </p>
-            )}{" "}
-            {type === messageTypeConstants.image && (
-              <img src={imageSource} alt="img" />
-            )}
-            {type === messageTypeConstants.audio && (
-              <audio controls src={`http://localhost:5000/${newMessage}`} />
-            )}
-            <p className="text-message-time">{`${formattedHours}:${minutes}${amOrPm}`}</p>
-          </div>
-        </ReceivedMessage>
-      );
-    }
-  };
-
   // Render the success view with the chat messages.
   const renderSuccessView = () => {
     return (
       <>
-        {chatData.map((eachConversation, index) =>
-          buildMessagesUi(eachConversation, index)
-        )}
+        {chatData.map((eachConversation) => {
+          const { type } = eachConversation;
+          switch (type) {
+            case messageTypeConstants.text:
+              return <TextMessages eachTextMessage={eachConversation} />;
+            case messageTypeConstants.image:
+              return <ImageMessages eachImageMessage={eachConversation} />;
+            case messageTypeConstants.audio:
+              return <AudioMessages eachAudioMessage={eachConversation} />;
+            default:
+              return null;
+          }
+        })}
       </>
     );
   };
@@ -400,19 +338,11 @@ export default function ChatContainer() {
     );
   };
 
-  const openModel = () => {
-    setModalOpen(true);
-  };
-
-  const closeModel = () => {
-    setModalOpen(false);
-  };
-
   return (
     <MainContainer>
-      <Modal isOpen={isModalOpen}>
+      <Modal isOpen={isRecordingModalOpen} onClose={setIsRecordingModalOpen}>
         <AudioRecorder
-          onClose={closeModel}
+          onClose={() => setIsRecordingModalOpen(false)}
           setChatData={setChatData}
           setMessageType={setMessageType}
         />
@@ -443,16 +373,16 @@ export default function ChatContainer() {
           height: `calc(100vh - ${showHideChatSearch ? "255" : "205"}px)`,
         }}
       >
-        {renderAppropriateView()}
+        {renderAppropriateView()}{" "}
       </MainChatContainer>
 
       {/* Footer */}
       <UserFooterContainer>
-        <ImageInputButton
+        <MediaButtons
           onClick={() => document.getElementById("imageInput").click()}
         >
           <FaImage />
-        </ImageInputButton>
+        </MediaButtons>
         <input
           type="file"
           accept="image/*"
@@ -463,16 +393,17 @@ export default function ChatContainer() {
           enctype="multipart/form-data"
         />
 
-        <MicButton
+        <MediaButtons
           onClick={() => {
             setMessageType(messageTypeConstants.audio);
-            openModel();
+            setIsRecordingModalOpen(true);
           }}
         >
           <FaMicrophone />
-        </MicButton>
+        </MediaButtons>
 
         <MessageInput
+          autoFocus
           placeholder="Type a message..."
           type="text"
           value={messageInput}

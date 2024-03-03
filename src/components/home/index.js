@@ -6,6 +6,7 @@ import { ChatContext } from "../Context/ChatContext.js";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { useContext, useEffect } from "react";
+import FullImageModal from "../FullImageModal";
 import {
   MainContainer,
   HybridContainer,
@@ -17,7 +18,13 @@ import {
 export default function Home() {
   const navigate = useNavigate();
 
-  const { profile, selectedChat, setSocket } = useContext(ChatContext);
+  const {
+    profile,
+    selectedChat,
+    setSocket,
+    fullImageModal,
+    setFullImageModal,
+  } = useContext(ChatContext);
 
   useEffect(() => {
     if (Cookies.get("chatToken") === undefined) {
@@ -51,6 +58,7 @@ export default function Home() {
 
   return (
     <MainContainer>
+      {fullImageModal && <FullImageModal/>}
       <Header />
       <HybridContainer>
         <FirstContainer ischatselected={selectedChat}>

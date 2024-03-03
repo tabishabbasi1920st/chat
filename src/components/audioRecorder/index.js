@@ -67,7 +67,7 @@ const AudioRecorder = ({ onClose, setChatData, setMessageType }) => {
 
     // Initialize MediaRecorder when the component mounts
     initializeMediaRecorder();
-  }, [recordedChunks]);
+  }, []);
 
   // useEffect to start/stop MediaRecorder based on the recording state
   useEffect(() => {
