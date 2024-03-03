@@ -338,6 +338,8 @@ export default function ChatContainer() {
     );
   };
 
+  const imageUrl = `http://localhost:${process.env.REACT_APP_PORT}/${selectedChat.imageUrl}`;
+
   return (
     <MainContainer>
       <Modal isOpen={isRecordingModalOpen} onClose={setIsRecordingModalOpen}>
@@ -352,7 +354,7 @@ export default function ChatContainer() {
         <BackButton type="button" onClick={() => setSelectedChat(null)}>
           <IoArrowBackSharp />
         </BackButton>
-        <DpContainer backgroundImage={selectedChat.imageUrl}></DpContainer>
+        <DpContainer backgroundImage={imageUrl}></DpContainer>
         <InformationContainer>
           <Username>{selectedChat.name}</Username>
           <Status>{isOnline ? "Active" : "Offline"}</Status>

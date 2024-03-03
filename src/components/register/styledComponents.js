@@ -48,6 +48,28 @@ export const MainContainer = styled.div`
     margin-top: 20px;
   }
 
+  #profilePictureContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+  }
+
+  #addPicBtn {
+    all: unset;
+    height: 200px;
+    border-radius: 50%;
+    width: 200px;
+    border: 2px solid red;
+    font-size: 50px;
+    border: 2px solid #203047;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+  }
+
   form p {
     font-size: 20px;
     color: #ffffff;

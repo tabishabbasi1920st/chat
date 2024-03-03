@@ -37,7 +37,7 @@ export default function TextMessages(props) {
   };
 
   const renderSenderUserDp = () => {
-    const { imageUrl } = selectedChat;
+    const imageUrl = `http://localhost:${process.env.REACT_APP_PORT}/${selectedChat.imageUrl}`;
     return (
       <SenderProfileContainer
         backgroundImage={imageUrl}

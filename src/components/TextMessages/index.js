@@ -17,7 +17,7 @@ export default function TextMessages(props) {
   const { profile, selectedChat } = useContext(ChatContext);
 
   const renderSenderUserDp = () => {
-    const { imageUrl } = selectedChat;
+    const imageUrl = `http://localhost:${process.env.REACT_APP_PORT}/${selectedChat.imageUrl}`;
     return (
       <div className="sender-profile-container">
         <img src={imageUrl} alt="Profile Picture" />

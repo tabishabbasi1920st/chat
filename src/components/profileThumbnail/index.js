@@ -33,10 +33,20 @@ export default function Profile() {
         };
 
         const response = await fetch(apiurl, options);
+        console.log(response);
         if (response.ok) {
           const fetchedData = await response.json();
           const profile = fetchedData.message[0];
-          setProfile(profile);
+          const updatedProfile = {
+            id: profile._id,
+            name: profile.name,
+            email: profile.email,
+            password: profile.password,
+            imageUrl: `http://localhost:${process.env.REACT_APP_PORT}/${profile.imageUrl}`,
+          };
+
+          setProfile(updatedProfile);
+          console.log(profile);
           setApiStatus(apiConstants.success);
         } else {
           setApiStatus(apiConstants.failure);

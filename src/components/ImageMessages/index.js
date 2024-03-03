@@ -11,8 +11,7 @@ export default function TextMessages(props) {
   const { eachImageMessage } = props;
   const { dateTime, newMessage, sentBy, name } = eachImageMessage;
 
-  const BACKEND_PORT = 5000;
-  const imageUrl = `http://localhost:${BACKEND_PORT}/${newMessage}`;
+  console.log(">>>>>>", newMessage);
 
   const dt = new Date(dateTime);
   const hour = dt.getHours();
@@ -29,11 +28,13 @@ export default function TextMessages(props) {
     setFullImageUrl,
   } = useContext(ChatContext);
 
+  const selectedChatImageUrl = `http://localhost:${process.env.REACT_APP_PORT}/${selectedChat.imageUrl}`;
+  const newMessageImageUrl = `http://localhost:${process.env.REACT_APP_PORT}/${newMessage}`;
+
   const renderSenderUserDp = () => {
-    const { imageUrl } = selectedChat;
     return (
       <div className="sender-profile-container">
-        <img src={imageUrl} alt="Profile Picture" />
+        <img src={selectedChatImageUrl} alt="Profile Picture" />
       </div>
     );
   };
@@ -45,10 +46,10 @@ export default function TextMessages(props) {
       {sentBy === selectedChat.email && renderSenderUserDp()}
       <div className="message-content" sentBy={sentBy} profile={profile}>
         <img
-          src={imageUrl}
+          src={newMessageImageUrl}
           onClick={() => {
             setFullImageModal(true);
-            setFullImageUrl(imageUrl);
+            setFullImageUrl(newMessageImageUrl);
           }}
           title="click to see on full page"
         />

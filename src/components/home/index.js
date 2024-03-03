@@ -18,13 +18,8 @@ import {
 export default function Home() {
   const navigate = useNavigate();
 
-  const {
-    profile,
-    selectedChat,
-    setSocket,
-    fullImageModal,
-    setFullImageModal,
-  } = useContext(ChatContext);
+  const { profile, selectedChat, setSocket, fullImageModal } =
+    useContext(ChatContext);
 
   useEffect(() => {
     if (Cookies.get("chatToken") === undefined) {
@@ -58,7 +53,7 @@ export default function Home() {
 
   return (
     <MainContainer>
-      {fullImageModal && <FullImageModal/>}
+      {fullImageModal && <FullImageModal />}
       <Header />
       <HybridContainer>
         <FirstContainer ischatselected={selectedChat}>

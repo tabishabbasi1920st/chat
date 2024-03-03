@@ -95,7 +95,8 @@ export default function AllChat() {
     return (
       <ul>
         {getFilteredListBySearch().map((eachChat) => {
-          const { id, name, imageUrl, email } = eachChat;
+          const { id, name, email } = eachChat;
+          const imageUrl = `http://localhost:${process.env.REACT_APP_PORT}/${eachChat.imageUrl}`;
           return (
             <li key={id} onClick={() => setSelectedChat(eachChat)}>
               <BackgroundImageContainer
