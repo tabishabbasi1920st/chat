@@ -8,6 +8,7 @@ const ChatContextProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [fullImageModal, setFullImageModal] = useState(false);
   const [fullImageUrl, setFullImageUrl] = useState(null);
+  const [connectedUsersList, setConnectedUsersList] = useState([]);
 
   return (
     <ChatContext.Provider
@@ -22,6 +23,8 @@ const ChatContextProvider = ({ children }) => {
         setFullImageModal,
         fullImageUrl,
         setFullImageUrl,
+        connectedUsersList,
+        setConnectedUsersList,
       }}
     >
       {children}

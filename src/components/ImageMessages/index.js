@@ -11,8 +11,6 @@ export default function TextMessages(props) {
   const { eachImageMessage } = props;
   const { dateTime, newMessage, sentBy, name } = eachImageMessage;
 
-  console.log(">>>>>>", newMessage);
-
   const dt = new Date(dateTime);
   const hour = dt.getHours();
   const formattedHours = hour % 12 || 12; // convert to 12-hour format.
@@ -39,7 +37,6 @@ export default function TextMessages(props) {
     );
   };
 
-  console.log(fullImageModal);
 
   return (
     <MainContainer sentBy={sentBy} profile={profile}>

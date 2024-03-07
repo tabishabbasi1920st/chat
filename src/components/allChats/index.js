@@ -26,8 +26,6 @@ export default function AllChat() {
   const [isSearchFocus, setIsSearchFocus] = useState(false);
   const [searchInput, setSearchInput] = useState("");
 
-  console.log("...", profile);
-
   useEffect(() => {
     const getAllChats = async () => {
       try {
@@ -103,11 +101,11 @@ export default function AllChat() {
   const renderSuccessView = () => {
     return (
       <ul>
-        {getFilteredListBySearch().map((eachChat) => {
+        {getFilteredListBySearch().map((eachChat,index) => {
           const { id, name, email } = eachChat;
           const imageUrl = `http://localhost:${process.env.REACT_APP_PORT}/${eachChat.imageUrl}`;
           return (
-            <li key={id} onClick={() => setSelectedChat(eachChat)}>
+            <li key={index} onClick={() => setSelectedChat(eachChat)}>
               <BackgroundImageContainer
                 style={{ backgroundImage: `url(${imageUrl})` }}
               />

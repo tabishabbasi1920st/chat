@@ -33,6 +33,7 @@ import Modal from "../Modal";
 import TextMessages from "../TextMessages";
 import ImageMessages from "../ImageMessages";
 import AudioMessages from "../AudioMessages";
+import Mp3Messages from "../Mp3Messages";
 
 // API constants to track the status of the API.
 const apiConstants = {
@@ -49,13 +50,23 @@ const messageTypeConstants = {
   audio: "AUDIO",
 };
 
+const messageDelieveryStatusConstants = {
+  sent: "SENT",
+  pending: "PENDING",
+  seen: "SEEN",
+};
+
 export default function ChatContainer() {
   // Consuming Context Values here.
-  const { selectedChat, setSelectedChat, socket, profile } =
+  const { selectedChat, setSelectedChat, socket, profile, connectedUsersList } =
     useContext(ChatContext);
 
+  // infinite scrolling
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+
   // Maintaining all references.
-  const chatContainerRef = useRef();
+  const chatContainerRef = useRef(null);
   const imageInputRef = useRef();
 
   // Using hooks for state management.
@@ -104,27 +115,58 @@ export default function ChatContainer() {
     };
 
     // API to check whether selectedChat user is online or offline.
-    const getOnlineStatus = async () => {
-      const apiUrl = `http://localhost:5000/user-status?user=${selectedChat.email}`;
-      try {
-        const response = await fetch(apiUrl);
-        const fetchedData = await response.json();
-        const onlineStatus = fetchedData.isOnline;
-        setIsOnline(onlineStatus);
-      } catch (error) {
-        console.error("Error fetching online status:", error);
-      }
-    };
 
     // Fetch chats and online status only if profile and selectedChat are not null.
     if (profile !== null && selectedChat !== null) {
       gettingChats();
-      getOnlineStatus();
     }
 
     // Listen to events to get messages sent by the selectedChat user.
+    // ye apne sare message ke status ko seen kar dega.
+    socket.emit("updateMyMessageStatus", {
+      me: profile.email,
+      to: selectedChat.email,
+    });
+
+    socket.on("iHaveSeenAllMessages", (updatedMessages) => {
+      setChatData((prevList) =>
+        prevList.map((existingMsg) => {
+          const matchingUpdatedMessage = updatedMessages.find(
+            (updatedMsg) => updatedMsg.id === existingMsg.id
+          );
+
+          if (matchingUpdatedMessage) {
+            // Return the updated message with the new delieveryStatus
+            return {
+              ...existingMsg,
+              delieveryStatus: messageDelieveryStatusConstants.seen,
+            };
+          }
+
+          // Return the existing message if no update is found
+          return existingMsg;
+        })
+      );
+    });
+
     socket.on("privateMessage", (newMessage) => {
       setChatData((prevData) => [...prevData, newMessage]);
+      socket.emit("gotPrivateMessage", {
+        id: newMessage.id,
+        sentBy: profile.email,
+        sentTo: newMessage.sentBy,
+      });
+    });
+
+    socket.on("gotPrivateMessage", (msg) => {
+      const { msgId } = msg;
+      setChatData((prevList) =>
+        prevList.map((msg) =>
+          msg.id === msgId
+            ? { ...msg, delieveryStatus: messageDelieveryStatusConstants.seen }
+            : msg
+        )
+      );
     });
 
     socket.on("privateImage", (newImgMsg) => {
@@ -143,7 +185,11 @@ export default function ChatContainer() {
       socket.off("privateImage");
       setMessageInput("");
     };
-  }, [selectedChat]);
+  }, [selectedChat, connectedUsersList]);
+
+  useEffect(() => {
+    setIsOnline(connectedUsersList.includes(selectedChat.email));
+  }, [connectedUsersList]);
 
   const handleImageInput = (e) => {
     const file = e.target.files[0];
@@ -244,14 +290,24 @@ export default function ChatContainer() {
       sentBy: profile.email,
       sentTo: selectedChat.email,
       type: messageTypeConstants.text,
+      delieveryStatus: messageDelieveryStatusConstants.pending,
     };
 
     // Emit the privateMessage event to the server.
     socket.emit("privateMessage", message, (ack) => {
-      if (ack.success) {
-        console.log(ack.message, ack.success);
+      const { success, msg } = ack;
+      if (success) {
+        setChatData((prevData) =>
+          prevData.map((eachMessage) => {
+            if (eachMessage.id === message.id) {
+              return { ...eachMessage, delieveryStatus: msg };
+            }
+
+            return eachMessage;
+          })
+        );
       } else {
-        console.error(ack.message, ack.success);
+        console.error(msg, success);
       }
     });
 
@@ -277,11 +333,26 @@ export default function ChatContainer() {
           const { type } = eachConversation;
           switch (type) {
             case messageTypeConstants.text:
-              return <TextMessages eachTextMessage={eachConversation} />;
+              return (
+                <TextMessages
+                  key={eachConversation.id}
+                  eachTextMessage={eachConversation}
+                />
+              );
             case messageTypeConstants.image:
-              return <ImageMessages eachImageMessage={eachConversation} />;
+              return (
+                <ImageMessages
+                  key={eachConversation.id}
+                  eachImageMessage={eachConversation}
+                />
+              );
             case messageTypeConstants.audio:
-              return <AudioMessages eachAudioMessage={eachConversation} />;
+              return (
+                <AudioMessages
+                  key={eachConversation.id}
+                  eachAudioMessage={eachConversation}
+                />
+              );
             default:
               return null;
           }
@@ -380,6 +451,8 @@ export default function ChatContainer() {
 
       {/* Footer */}
       <UserFooterContainer>
+        <Mp3Messages setMessageType={setMessageType} />
+
         <MediaButtons
           onClick={() => document.getElementById("imageInput").click()}
         >

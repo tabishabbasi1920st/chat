@@ -5,7 +5,9 @@ import { MainContainer } from "./styledComponents";
 
 export default function TextMessages(props) {
   const { eachTextMessage } = props;
-  const { dateTime, newMessage, sentBy } = eachTextMessage;
+  const { dateTime, newMessage, sentBy, delieveryStatus } = eachTextMessage;
+
+  console.log(delieveryStatus);
 
   const dt = new Date(dateTime);
   const hour = dt.getHours();
@@ -31,7 +33,8 @@ export default function TextMessages(props) {
       {sentBy === selectedChat.email && renderSenderUserDp()}
       <div className="msg-container">
         <p className="msg">{newMessage}</p>
-        <p className="msg-time">{`${formattedHours}:${formattedMinutes} ${amOrPm}`}</p>
+        <p className="msg-time">{`${formattedHours}:${formattedMinutes} ${amOrPm} `}</p>
+        {sentBy === profile.email && <p>{delieveryStatus}</p>}
       </div>
     </MainContainer>
   );

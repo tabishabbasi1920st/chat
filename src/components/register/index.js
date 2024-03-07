@@ -123,47 +123,6 @@ export default function Register() {
     );
   };
 
-  // const handleFormSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (formValidation()) {
-  //     try {
-  //       setApiStatus(apiConstants.inProgress);
-  //       const apiUrl = "http://localhost:5000/register";
-  //       const options = {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify(formData),
-  //       };
-
-  //       const response = await fetch(apiUrl, options);
-  //       const fetchedData = await response.json();
-  //       if (response.ok) {
-  //         setApiStatus(apiConstants.success);
-  //         toast.success("Registration Successful! Please Login.", {
-  //           ...toastOptions,
-  //         });
-  //         setTimeout(() => {
-  //           navigate("/login");
-  //         }, 3000);
-  //       } else {
-  //         const message = fetchedData.message;
-  //         toast.error(message, {
-  //           ...toastOptions,
-  //         });
-  //         setApiStatus(apiConstants.failure);
-  //       }
-  //     } catch (error) {
-  //       toast.error("Something went wrong while registering user.", {
-  //         ...toastOptions,
-  //       });
-  //       setApiStatus(apiConstants.failure);
-  //       console.log("Error while register user.", error);
-  //     }
-  //   }
-  // };
-
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (formValidation()) {

@@ -33,7 +33,6 @@ export default function Profile() {
         };
 
         const response = await fetch(apiurl, options);
-        console.log(response);
         if (response.ok) {
           const fetchedData = await response.json();
           const profile = fetchedData.message[0];
@@ -46,7 +45,6 @@ export default function Profile() {
           };
 
           setProfile(updatedProfile);
-          console.log(profile);
           setApiStatus(apiConstants.success);
         } else {
           setApiStatus(apiConstants.failure);

@@ -18,8 +18,13 @@ import {
 export default function Home() {
   const navigate = useNavigate();
 
-  const { profile, selectedChat, setSocket, fullImageModal } =
-    useContext(ChatContext);
+  const {
+    profile,
+    selectedChat,
+    setSocket,
+    fullImageModal,
+    setConnectedUsersList,
+  } = useContext(ChatContext);
 
   useEffect(() => {
     if (Cookies.get("chatToken") === undefined) {
@@ -28,6 +33,10 @@ export default function Home() {
 
     const newSocket = io("http://localhost:5000");
     setSocket(newSocket);
+
+    newSocket.on("connectedUsers", (connectedUsersList) => {
+      setConnectedUsersList(connectedUsersList);
+    });
 
     if (profile !== null) {
       newSocket.emit("setEmail", profile.email);
